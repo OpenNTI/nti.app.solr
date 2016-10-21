@@ -19,6 +19,9 @@ from zope.traversing.interfaces import IPathAdapter
 
 from nti.contentlibrary.interfaces import IContentUnit
 
+from nti.contenttypes.courses.interfaces import ICourseInstance
+from nti.contenttypes.courses.interfaces import ICourseCatalogEntry
+
 from pyramid import httpexceptions as hexc
 
 from pyramid.view import view_config
@@ -53,4 +56,18 @@ class IndexContentUnitView(AbstractAuthenticatedView):
 	def __call__(self):
 		context = removeAllProxies(self.context)
 		notify(IndexObjectEvent(context))
+		return hexc.HTTPNoContent()
+
+@view_config(context=ICourseInstance)
+@view_config(context=ICourseCatalogEntry)
+@view_defaults(route_name='objects.generic.traversal',
+			   renderer='rest',
+			   name='solr_index',
+			   request_method='POST',
+			   permission=nauth.ACT_NTI_ADMIN)
+class IndexCourseView(AbstractAuthenticatedView):
+
+	def __call__(self):
+		context = removeAllProxies(self.context)
+		notify(IndexObjectEvent(ICourseInstance(context)))
 		return hexc.HTTPNoContent()
