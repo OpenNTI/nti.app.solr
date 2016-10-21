@@ -35,6 +35,8 @@ from nti.externalization.proxy import removeAllProxies
 
 from nti.solr.interfaces import IndexObjectEvent
 
+from nti.solr.utils import object_finder
+
 @interface.implementer(IPathAdapter)
 class SOLRPathAdapter(Contained):
 
@@ -45,17 +47,39 @@ class SOLRPathAdapter(Contained):
 		self.request = request
 		self.__parent__ = context
 
+@view_config(name='index')
+@view_defaults(route_name='objects.generic.traversal',
+			   renderer='rest',
+			   request_method='POST',
+			   context=SOLRPathAdapter,
+			   permission=nauth.ACT_NTI_ADMIN)
+class IndexObjectView(AbstractAuthenticatedView):
+
+	def _notify(self, context):
+		context = removeAllProxies(context)
+		notify(IndexObjectEvent(context))
+
+	def __call__(self):
+		request = self.request
+		uid = request.subpath[0] if request.subpath else ''
+		if uid is None:
+			raise hexc.HTTPUnprocessableEntity("Must specify an object id")
+		context = object_finder(uid)
+		if context is None:
+			raise hexc.HTTPNotFound()
+		self._notify(context)
+		return hexc.HTTPNoContent()
+
 @view_config(name='solr_index')
 @view_defaults(route_name='objects.generic.traversal',
 			   renderer='rest',
 			   request_method='POST',
 			   context=IContentUnit,
 			   permission=nauth.ACT_NTI_ADMIN)
-class IndexContentUnitView(AbstractAuthenticatedView):
+class IndexContentUnitView(IndexObjectView):
 
 	def __call__(self):
-		context = removeAllProxies(self.context)
-		notify(IndexObjectEvent(context))
+		self._notify(self.context)
 		return hexc.HTTPNoContent()
 
 @view_config(context=ICourseInstance)
@@ -65,9 +89,8 @@ class IndexContentUnitView(AbstractAuthenticatedView):
 			   name='solr_index',
 			   request_method='POST',
 			   permission=nauth.ACT_NTI_ADMIN)
-class IndexCourseView(AbstractAuthenticatedView):
+class IndexCourseView(IndexObjectView):
 
 	def __call__(self):
-		context = removeAllProxies(self.context)
-		notify(IndexObjectEvent(ICourseInstance(context)))
+		self._notify(ICourseInstance(self.context))
 		return hexc.HTTPNoContent()
