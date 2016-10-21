@@ -22,6 +22,8 @@ from nti.contentlibrary.interfaces import IContentUnit
 from nti.contenttypes.courses.interfaces import ICourseInstance
 from nti.contenttypes.courses.interfaces import ICourseCatalogEntry
 
+from nti.contenttypes.courses.utils import get_course_subinstances
+
 from pyramid import httpexceptions as hexc
 
 from pyramid.view import view_config
@@ -93,4 +95,6 @@ class IndexCourseView(IndexObjectView):
 
 	def __call__(self):
 		self._notify(ICourseInstance(self.context))
+		for course in get_course_subinstances(self.context):
+			self._notify(course)
 		return hexc.HTTPNoContent()
