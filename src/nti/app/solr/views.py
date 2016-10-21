@@ -5,7 +5,6 @@
 """
 
 from __future__ import print_function, unicode_literals, absolute_import, division
-from nti.externalization.proxy import removeAllProxies
 __docformat__ = "restructuredtext en"
 
 logger = __import__('logging').getLogger(__name__)
@@ -28,6 +27,8 @@ from pyramid.view import view_defaults
 from nti.app.base.abstract_views import AbstractAuthenticatedView
 
 from nti.dataserver import authorization as nauth
+
+from nti.externalization.proxy import removeAllProxies
 
 from nti.solr.interfaces import IndexObjectEvent
 
