@@ -5,6 +5,7 @@
 """
 
 from __future__ import print_function, unicode_literals, absolute_import, division
+from nti.externalization.proxy import removeAllProxies
 __docformat__ = "restructuredtext en"
 
 logger = __import__('logging').getLogger(__name__)
@@ -49,5 +50,6 @@ class SOLRPathAdapter(Contained):
 class IndexContentUnitView(AbstractAuthenticatedView):
 
 	def __call__(self):
-		notify(IndexObjectEvent(self.context))
+		context = removeAllProxies(self.context)
+		notify(IndexObjectEvent(context))
 		return hexc.HTTPNoContent()
