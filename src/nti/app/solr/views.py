@@ -24,6 +24,8 @@ from nti.contenttypes.courses.interfaces import ICourseCatalogEntry
 
 from nti.contenttypes.courses.utils import get_course_subinstances
 
+from nti.contenttypes.presentation.interfaces import INTITranscript
+
 from pyramid import httpexceptions as hexc
 
 from pyramid.view import view_config
@@ -97,4 +99,16 @@ class IndexCourseView(IndexObjectView):
 		self._notify(ICourseInstance(self.context))
 		for course in get_course_subinstances(self.context):
 			self._notify(course)
+		return hexc.HTTPNoContent()
+
+@view_config(name='solr_index')
+@view_defaults(route_name='objects.generic.traversal',
+			   renderer='rest',
+			   request_method='POST',
+			   context=INTITranscript,
+			   permission=nauth.ACT_NTI_ADMIN)
+class IndexTranscriptView(IndexObjectView):
+
+	def __call__(self):
+		self._notify(self.context)
 		return hexc.HTTPNoContent()
