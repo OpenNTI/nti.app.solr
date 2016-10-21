@@ -61,7 +61,7 @@ class IndexObjectView(AbstractAuthenticatedView):
 
 	def __call__(self):
 		request = self.request
-		uid = request.subpath[0] if request.subpath else ''
+		uid = request.subpath[0] if request.subpath else None
 		if uid is None:
 			raise hexc.HTTPUnprocessableEntity("Must specify an object id")
 		context = object_finder(uid)
