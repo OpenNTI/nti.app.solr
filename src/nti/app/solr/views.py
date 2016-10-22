@@ -24,7 +24,8 @@ from nti.contenttypes.courses.interfaces import ICourseCatalogEntry
 
 from nti.contenttypes.courses.utils import get_course_subinstances
 
-from nti.contenttypes.presentation.interfaces import INTITranscript
+from nti.contenttypes.presentation.interfaces import INTIMedia 
+from nti.contenttypes.presentation.interfaces import INTITranscript 
 from nti.contenttypes.presentation.interfaces import INTIDocketAsset
 
 from pyramid import httpexceptions as hexc
@@ -102,6 +103,7 @@ class IndexCourseView(IndexObjectView):
 			self._notify(course)
 		return hexc.HTTPNoContent()
 
+@view_config(context=INTIMedia)
 @view_config(context=INTITranscript)
 @view_config(context=INTIDocketAsset)
 @view_defaults(route_name='objects.generic.traversal',
