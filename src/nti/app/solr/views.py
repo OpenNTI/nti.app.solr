@@ -40,6 +40,7 @@ from nti.dataserver import authorization as nauth
 from nti.externalization.proxy import removeAllProxies
 
 from nti.solr.interfaces import IndexObjectEvent
+from nti.solr.interfaces import UnindexObjectEvent
 
 from nti.solr.utils import object_finder
 
@@ -76,6 +77,29 @@ class IndexObjectView(AbstractAuthenticatedView):
 		self._notify(context)
 		return hexc.HTTPNoContent()
 
+@view_config(name='unindex')
+@view_defaults(route_name='objects.generic.traversal',
+			   renderer='rest',
+			   request_method='POST',
+			   context=SOLRPathAdapter,
+			   permission=nauth.ACT_NTI_ADMIN)
+class UnindexObjectView(AbstractAuthenticatedView):
+
+	def _notify(self, context):
+		context = removeAllProxies(context)
+		notify(UnindexObjectEvent(context))
+
+	def __call__(self):
+		request = self.request
+		uid = request.subpath[0] if request.subpath else None
+		if uid is None:
+			raise hexc.HTTPUnprocessableEntity("Must specify an object id")
+		context = object_finder(uid)
+		if context is None:
+			raise hexc.HTTPNotFound()
+		self._notify(context)
+		return hexc.HTTPNoContent()
+
 @view_config(name='solr_index')
 @view_defaults(route_name='objects.generic.traversal',
 			   renderer='rest',
@@ -83,6 +107,18 @@ class IndexObjectView(AbstractAuthenticatedView):
 			   context=IContentUnit,
 			   permission=nauth.ACT_NTI_ADMIN)
 class IndexContentUnitView(IndexObjectView):
+
+	def __call__(self):
+		self._notify(self.context)
+		return hexc.HTTPNoContent()
+
+@view_config(name='solr_unindex')
+@view_defaults(route_name='objects.generic.traversal',
+			   renderer='rest',
+			   request_method='POST',
+			   context=IContentUnit,
+			   permission=nauth.ACT_NTI_ADMIN)
+class UnindexContentUnitView(UnindexObjectView):
 
 	def __call__(self):
 		self._notify(self.context)
