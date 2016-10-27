@@ -11,6 +11,7 @@ logger = __import__('logging').getLogger(__name__)
 
 from zope.component.hooks import site as current_site
 
+from nti.app.assessment.interfaces import ICourseEvaluations
 from nti.app.assessment.interfaces import IUsersCourseAssignmentHistories
 
 from nti.contenttypes.courses.interfaces import ICourseInstance
@@ -52,7 +53,7 @@ def process_course_assignment_feedback(obj, index=True):
 				for feedback in item.Feedback.Items:
 					catalog = ICoreCatalog(feedback)
 					operation = catalog.add if index else catalog.remove
-					operation(obj, commit=False) # wait for server to commit
+					operation(obj, commit=False)  # wait for server to commit
 
 def index_course_assignment_feedback(source, site=None, *args, **kwargs):
 	job_site = get_job_site(site)
@@ -67,3 +68,55 @@ def unindex_course_assignment_feedback(source, site=None, *args, **kwargs):
 		obj = ICourseInstance(finder(source), None)
 		if ICourseInstance.providedBy(obj):
 			process_course_assignment_feedback(obj, index=False)
+
+def process_course_evaluations(obj, index=True):
+	container = ICourseEvaluations(obj, None)
+	if container is not None:
+		size = len(container) - 1
+		for x, item in enumerate(list(container.values())):
+			catalog = ICoreCatalog(item)
+			operation = catalog.add if index else catalog.remove
+			operation(obj, commit=size == x)
+
+def index_course_evaluations(source, site=None, *args, **kwargs):
+	job_site = get_job_site(site)
+	with current_site(job_site):
+		obj = ICourseInstance(finder(source), None)
+		if ICourseInstance.providedBy(obj):
+			process_course_assignment_feedback(obj, index=True)
+
+def unindex_course_evaluations(source, site=None, *args, **kwargs):
+	job_site = get_job_site(site)
+	with current_site(job_site):
+		obj = ICourseInstance(finder(source), None)
+		if ICourseInstance.providedBy(obj):
+			process_course_evaluations(obj, index=False)
+
+def process_course_discussions(obj, index=True):
+	board = obj.Discussions
+	for forum in list(board.values()):
+		catalog = ICoreCatalog(forum)
+		operation = catalog.add if index else catalog.remove
+		operation(obj, commit=False)
+		for topic in list(forum.values()):
+			catalog = ICoreCatalog(forum)
+			operation = catalog.add if index else catalog.remove
+			operation(obj, commit=False)
+			for comment in list(topic.values()):
+				catalog = ICoreCatalog(comment)
+				operation = catalog.add if index else catalog.remove
+				operation(comment, commit=False)  # wait for server to commit
+
+def index_course_discussions(source, site=None, *args, **kwargs):
+	job_site = get_job_site(site)
+	with current_site(job_site):
+		obj = ICourseInstance(finder(source), None)
+		if ICourseInstance.providedBy(obj):
+			process_course_discussions(obj, index=True)
+
+def unindex_course_discussions(source, site=None, *args, **kwargs):
+	job_site = get_job_site(site)
+	with current_site(job_site):
+		obj = ICourseInstance(finder(source), None)
+		if ICourseInstance.providedBy(obj):
+			process_course_discussions(obj, index=False)
