@@ -9,13 +9,7 @@ __docformat__ = "restructuredtext en"
 
 logger = __import__('logging').getLogger(__name__)
 
-from zope import interface
-
 from zope.event import notify
-
-from zope.container.contained import Contained
-
-from zope.traversing.interfaces import IPathAdapter
 
 from pyramid import httpexceptions as hexc
 
@@ -24,12 +18,9 @@ from pyramid.view import view_defaults
 
 from nti.app.base.abstract_views import AbstractAuthenticatedView
 
+from nti.app.solr.views import SOLRPathAdapter
+
 from nti.contentlibrary.interfaces import IContentUnit
-
-from nti.contenttypes.courses.interfaces import ICourseInstance
-from nti.contenttypes.courses.interfaces import ICourseCatalogEntry
-
-from nti.contenttypes.courses.utils import get_course_subinstances
 
 from nti.contenttypes.presentation.interfaces import INTIMedia 
 from nti.contenttypes.presentation.interfaces import INTITranscript 
@@ -44,16 +35,6 @@ from nti.solr.interfaces import IndexObjectEvent
 from nti.solr.interfaces import UnindexObjectEvent
 
 from nti.solr.utils import object_finder
-
-@interface.implementer(IPathAdapter)
-class SOLRPathAdapter(Contained):
-
-	__name__ = 'solr'
-
-	def __init__(self, context, request):
-		self.context = context
-		self.request = request
-		self.__parent__ = context
 
 @view_config(name='index')
 @view_defaults(route_name='objects.generic.traversal',
@@ -99,21 +80,6 @@ class UnindexSOLRObjectView(AbstractAuthenticatedView):
 		if context is None:
 			raise hexc.HTTPNotFound()
 		self._notify(context)
-		return hexc.HTTPNoContent()
-
-@view_config(context=ICourseInstance)
-@view_config(context=ICourseCatalogEntry)
-@view_defaults(route_name='objects.generic.traversal',
-			   renderer='rest',
-			   name='solr_index',
-			   request_method='POST',
-			   permission=nauth.ACT_NTI_ADMIN)
-class IndexCourseView(SOLRIndexObjectView):
-
-	def __call__(self):
-		self._notify(ICourseInstance(self.context))
-		for course in get_course_subinstances(self.context):
-			self._notify(course)
 		return hexc.HTTPNoContent()
 
 @view_config(context=INTIMedia)
