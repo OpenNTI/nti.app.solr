@@ -17,6 +17,13 @@ from zope.container.contained import Contained
 
 from zope.traversing.interfaces import IPathAdapter
 
+from pyramid import httpexceptions as hexc
+
+from pyramid.view import view_config
+from pyramid.view import view_defaults
+
+from nti.app.base.abstract_views import AbstractAuthenticatedView
+
 from nti.contentlibrary.interfaces import IContentUnit
 
 from nti.contenttypes.courses.interfaces import ICourseInstance
@@ -28,14 +35,8 @@ from nti.contenttypes.presentation.interfaces import INTIMedia
 from nti.contenttypes.presentation.interfaces import INTITranscript 
 from nti.contenttypes.presentation.interfaces import INTIDocketAsset
 
-from pyramid import httpexceptions as hexc
-
-from pyramid.view import view_config
-from pyramid.view import view_defaults
-
-from nti.app.base.abstract_views import AbstractAuthenticatedView
-
 from nti.dataserver import authorization as nauth
+from nti.dataserver.interfaces import IUserGeneratedData
 
 from nti.externalization.proxy import removeAllProxies
 
@@ -60,7 +61,7 @@ class SOLRPathAdapter(Contained):
 			   request_method='POST',
 			   context=SOLRPathAdapter,
 			   permission=nauth.ACT_NTI_ADMIN)
-class IndexObjectView(AbstractAuthenticatedView):
+class SOLRIndexObjectView(AbstractAuthenticatedView):
 
 	def _notify(self, context):
 		context = removeAllProxies(context)
@@ -83,7 +84,7 @@ class IndexObjectView(AbstractAuthenticatedView):
 			   request_method='POST',
 			   context=SOLRPathAdapter,
 			   permission=nauth.ACT_NTI_ADMIN)
-class UnindexObjectView(AbstractAuthenticatedView):
+class UnindexSOLRObjectView(AbstractAuthenticatedView):
 
 	def _notify(self, context):
 		context = removeAllProxies(context)
@@ -100,30 +101,6 @@ class UnindexObjectView(AbstractAuthenticatedView):
 		self._notify(context)
 		return hexc.HTTPNoContent()
 
-@view_config(name='solr_index')
-@view_defaults(route_name='objects.generic.traversal',
-			   renderer='rest',
-			   request_method='POST',
-			   context=IContentUnit,
-			   permission=nauth.ACT_NTI_ADMIN)
-class IndexContentUnitView(IndexObjectView):
-
-	def __call__(self):
-		self._notify(self.context)
-		return hexc.HTTPNoContent()
-
-@view_config(name='solr_unindex')
-@view_defaults(route_name='objects.generic.traversal',
-			   renderer='rest',
-			   request_method='POST',
-			   context=IContentUnit,
-			   permission=nauth.ACT_NTI_ADMIN)
-class UnindexContentUnitView(UnindexObjectView):
-
-	def __call__(self):
-		self._notify(self.context)
-		return hexc.HTTPNoContent()
-
 @view_config(context=ICourseInstance)
 @view_config(context=ICourseCatalogEntry)
 @view_defaults(route_name='objects.generic.traversal',
@@ -131,7 +108,7 @@ class UnindexContentUnitView(UnindexObjectView):
 			   name='solr_index',
 			   request_method='POST',
 			   permission=nauth.ACT_NTI_ADMIN)
-class IndexCourseView(IndexObjectView):
+class IndexCourseView(SOLRIndexObjectView):
 
 	def __call__(self):
 		self._notify(ICourseInstance(self.context))
@@ -140,14 +117,32 @@ class IndexCourseView(IndexObjectView):
 		return hexc.HTTPNoContent()
 
 @view_config(context=INTIMedia)
+@view_config(context=IContentUnit)
 @view_config(context=INTITranscript)
 @view_config(context=INTIDocketAsset)
+@view_config(context=IUserGeneratedData)
 @view_defaults(route_name='objects.generic.traversal',
 			   renderer='rest',
 			   name='solr_index',
 			   request_method='POST',
 			   permission=nauth.ACT_NTI_ADMIN)
-class IndexAssetView(IndexObjectView):
+class IndexObjectView(SOLRIndexObjectView):
+
+	def __call__(self):
+		self._notify(self.context)
+		return hexc.HTTPNoContent()
+
+@view_config(context=INTIMedia)
+@view_config(context=IContentUnit)
+@view_config(context=INTITranscript)
+@view_config(context=INTIDocketAsset)
+@view_config(context=IUserGeneratedData)
+@view_defaults(route_name='objects.generic.traversal',
+			   renderer='rest',
+			   name='solr_unindex',
+			   request_method='POST',
+			   permission=nauth.ACT_NTI_ADMIN)
+class UnindexObjectView(UnindexSOLRObjectView):
 
 	def __call__(self):
 		self._notify(self.context)
