@@ -37,7 +37,7 @@ def all_user_generated_data(users=(), sharedWith=False):
 	else:
 		uids = catalog[IX_CREATOR].ids()
 
-	for uid in uids:
+	for uid in uids or ():
 		obj = intids.queryObject(uid)
 		if IUserGeneratedData.providedBy(obj):
 			yield uid, obj
