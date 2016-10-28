@@ -27,9 +27,8 @@ from nti.solr.interfaces import ICoreCatalog
 def process_course_assets(obj, index=True):
 	container = IPresentationAssetContainer(obj, None)
 	if container:
-		size = len(container) - 1
-		for x, a in enumerate(container.values()):
-			process_asset(a, index=index, commit=size == x)
+		for a in list(container.values()):
+			process_asset(a, index=index, commit=False) # wait for server to commit
 
 def index_course_assets(source, site=None, *args, **kwargs):
 	job_site = get_job_site(site)
