@@ -16,6 +16,8 @@ from nti.app.assessment.interfaces import IUsersCourseAssignmentHistories
 
 from nti.contenttypes.courses.interfaces import ICourseInstance
 
+from nti.contenttypes.presentation.interfaces import IConcreteAsset
+from nti.contenttypes.presentation.interfaces import IUserCreatedAsset
 from nti.contenttypes.presentation.interfaces import IPresentationAssetContainer
 
 from nti.solr.common import finder
@@ -28,7 +30,9 @@ def process_course_assets(obj, index=True):
 	container = IPresentationAssetContainer(obj, None)
 	if container:
 		for a in list(container.values()):
-			process_asset(a, index=index, commit=False) # wait for server to commit
+			a = IConcreteAsset(a, a)
+			if IUserCreatedAsset.providedBy(a):
+				process_asset(a, index=index, commit=False) # wait for server to commit
 
 def index_course_assets(source, site=None, *args, **kwargs):
 	job_site = get_job_site(site)
