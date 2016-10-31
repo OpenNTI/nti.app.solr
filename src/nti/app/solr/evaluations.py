@@ -24,8 +24,8 @@ from nti.solr.common import get_job_site
 from nti.solr.common import add_to_queue
 
 from nti.solr.interfaces import ICoreCatalog
-from nti.solr.interfaces import IIndexObjectEvent 
-from nti.solr.interfaces import IUnindexObjectEvent 
+from nti.solr.interfaces import IIndexObjectEvent
+from nti.solr.interfaces import IUnindexObjectEvent
 
 def process_content_package_evaluations(obj, index=True):
 	collector = set()
@@ -39,7 +39,7 @@ def process_content_package_evaluations(obj, index=True):
 	for a in collector:
 		catalog = ICoreCatalog(a)
 		operation = catalog.add if index else catalog.remove
-		operation(a, commit=False) # wait for server to commit
+		operation(a, commit=False)  # wait for server to commit
 
 def index_content_package_evaluations(source, site=None, *args, **kwargs):
 	job_site = get_job_site(site)
@@ -49,7 +49,7 @@ def index_content_package_evaluations(source, site=None, *args, **kwargs):
 			logger.info("Content package %s evaluations indexing started", obj.ntiid)
 			process_content_package_evaluations(obj, index=True)
 			logger.info("Content package %s evaluations indexing completed", obj.ntiid)
-			
+
 def unindex_content_package_evaluations(source, site=None, *args, **kwargs):
 	job_site = get_job_site(site)
 	with current_site(job_site):
@@ -59,7 +59,7 @@ def unindex_content_package_evaluations(source, site=None, *args, **kwargs):
 
 @component.adapter(IContentPackage, IIndexObjectEvent)
 def _index_contentpackage(obj, event):
-	add_to_queue(EVALUATIONS_QUEUE, 
+	add_to_queue(EVALUATIONS_QUEUE,
 				 index_content_package_evaluations, obj, jid='evaluations_added')
 
 @component.adapter(IContentPackage, IUnindexObjectEvent)
