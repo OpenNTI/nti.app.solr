@@ -15,4 +15,10 @@
 			 factory=".views.SOLRPathAdapter"
 			 provides="zope.traversing.interfaces.IPathAdapter" />
 
+	<configure zcml:condition="installed nti.assessment">
+		<subscriber handler=".evaluations._index_contentpackage"
+					for="nti.contentlibrary.interfaces.IContentPackage
+						 nti.solr.interfaces.IIndexObjectEvent"/>
+	</configure>
+
 </configure>

@@ -9,16 +9,22 @@ __docformat__ = "restructuredtext en"
 
 logger = __import__('logging').getLogger(__name__)
 
+from zope import component
+
 from zope.component.hooks import site as current_site
 
 from nti.assessment.interfaces import IQAssessmentItemContainer
 
 from nti.contentlibrary.interfaces import IContentPackage
 
+from nti.solr import EVALUATIONS_QUEUE
+
 from nti.solr.common import finder
 from nti.solr.common import get_job_site
+from nti.solr.common import add_to_queue
 
 from nti.solr.interfaces import ICoreCatalog
+from nti.solr.interfaces import IIndexObjectEvent 
 
 def process_content_package_evaluations(obj, index=True):
 	container = IQAssessmentItemContainer(obj, None)
@@ -42,3 +48,8 @@ def unindex_course_assets(source, site=None, *args, **kwargs):
 		obj = finder(source)
 		if IContentPackage.providedBy(obj):
 			process_content_package_evaluations(obj, index=False)
+
+@component.adapter(IContentPackage, IIndexObjectEvent)
+def _index_contentpackage(obj, event):
+	add_to_queue(EVALUATIONS_QUEUE, 
+				 index_content_package_evaluations, obj, jid='evaluations_added')
