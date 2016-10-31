@@ -25,6 +25,10 @@
 		<subscriber handler=".evaluations._index_contentpackage"
 					for="nti.contentlibrary.interfaces.IContentPackage
 						 nti.solr.interfaces.IIndexObjectEvent"/>
+						 
+		<subscriber handler=".evaluations._unindex_contentpackage"
+					for="nti.contentlibrary.interfaces.IContentPackage
+						 nti.solr.interfaces.IUnindexObjectEvent"/>
 	</configure>
 
 </configure>

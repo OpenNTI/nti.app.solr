@@ -25,6 +25,7 @@ from nti.solr.common import add_to_queue
 
 from nti.solr.interfaces import ICoreCatalog
 from nti.solr.interfaces import IIndexObjectEvent 
+from nti.solr.interfaces import IUnindexObjectEvent 
 
 def process_content_package_evaluations(obj, index=True):
 	container = IQAssessmentItemContainer(obj, None)
@@ -42,7 +43,7 @@ def index_content_package_evaluations(source, site=None, *args, **kwargs):
 		if IContentPackage.providedBy(obj):
 			process_content_package_evaluations(obj, index=True)
 
-def unindex_course_assets(source, site=None, *args, **kwargs):
+def unindex_content_package_evaluations(source, site=None, *args, **kwargs):
 	job_site = get_job_site(site)
 	with current_site(job_site):
 		obj = finder(source)
@@ -53,3 +54,8 @@ def unindex_course_assets(source, site=None, *args, **kwargs):
 def _index_contentpackage(obj, event):
 	add_to_queue(EVALUATIONS_QUEUE, 
 				 index_content_package_evaluations, obj, jid='evaluations_added')
+
+@component.adapter(IContentPackage, IUnindexObjectEvent)
+def _unindex_contentpackage(obj, event):
+	add_to_queue(EVALUATIONS_QUEUE, unindex_content_package_evaluations, obj,
+				 jid='evaluations_removed')
