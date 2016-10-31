@@ -9,6 +9,8 @@ __docformat__ = "restructuredtext en"
 
 logger = __import__('logging').getLogger(__name__)
 
+from zope import component
+
 from zope.component.hooks import site as current_site
 
 from nti.app.assessment.interfaces import ICourseEvaluations
@@ -20,11 +22,15 @@ from nti.contenttypes.presentation.interfaces import IConcreteAsset
 from nti.contenttypes.presentation.interfaces import IUserCreatedAsset
 from nti.contenttypes.presentation.interfaces import IPresentationAssetContainer
 
+from nti.solr import COURSES_QUEUE 
+
 from nti.solr.common import finder
+from nti.solr.common import add_to_queue
 from nti.solr.common import get_job_site
 from nti.solr.common import process_asset
 
 from nti.solr.interfaces import ICoreCatalog
+from nti.solr.interfaces import IIndexObjectEvent
 
 def process_course_assets(obj, index=True):
 	container = IPresentationAssetContainer(obj, None)
@@ -123,3 +129,10 @@ def unindex_course_discussions(source, site=None, *args, **kwargs):
 		obj = ICourseInstance(finder(source), None)
 		if ICourseInstance.providedBy(obj):
 			process_course_discussions(obj, index=False)
+
+@component.adapter(ICourseInstance, IIndexObjectEvent)
+def _index_course(obj, event):
+	add_to_queue(COURSES_QUEUE, index_course_assets, obj, jid='assets_added')
+	add_to_queue(COURSES_QUEUE, index_course_evaluations, obj, jid='evaluations_added')
+	add_to_queue(COURSES_QUEUE, index_course_discussions, obj, jid='discussions_added')
+	add_to_queue(COURSES_QUEUE, index_course_assignment_feedback, obj, jid='feedback_added')
