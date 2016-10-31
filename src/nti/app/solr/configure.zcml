@@ -15,7 +15,7 @@
 			 factory=".views.SOLRPathAdapter"
 			 provides="zope.traversing.interfaces.IPathAdapter" />
 
-	<configure zcml:condition="nti.contenttypes.courses">
+	<configure zcml:condition="installed nti.contenttypes.courses">
 		<subscriber handler=".courses._index_course"
 					for="nti.contenttypes.courses.interfaces.ICourseInstance
 						 nti.solr.interfaces.IIndexObjectEvent"/>
