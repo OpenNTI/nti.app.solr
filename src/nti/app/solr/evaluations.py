@@ -28,13 +28,18 @@ from nti.solr.interfaces import IIndexObjectEvent
 from nti.solr.interfaces import IUnindexObjectEvent 
 
 def process_content_package_evaluations(obj, index=True):
-	container = IQAssessmentItemContainer(obj, None)
-	if container:
-		size = len(container) - 1
-		for x, a in enumerate(container.values()):
-			catalog = ICoreCatalog(a)
-			operation = catalog.add if index else catalog.remove
-			operation(obj, commit=size == x)
+	collector = set()
+	def recur(unit):
+		for child in unit.children or ():
+			recur(child)
+		container = IQAssessmentItemContainer(unit, None)
+		if container:
+			collector.update(container.values())
+	recur(obj)
+	for a in collector:
+		catalog = ICoreCatalog(a)
+		operation = catalog.add if index else catalog.remove
+		operation(obj, commit=False) # wait for server to commit
 
 def index_content_package_evaluations(source, site=None, *args, **kwargs):
 	job_site = get_job_site(site)
