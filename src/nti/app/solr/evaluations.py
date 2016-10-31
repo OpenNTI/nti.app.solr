@@ -41,8 +41,10 @@ def index_content_package_evaluations(source, site=None, *args, **kwargs):
 	with current_site(job_site):
 		obj = finder(source)
 		if IContentPackage.providedBy(obj):
+			logger.info("Content package %s evaluations indexing started", obj.ntiid)
 			process_content_package_evaluations(obj, index=True)
-
+			logger.info("Content package %s evaluations indexing completed", obj.ntiid)
+			
 def unindex_content_package_evaluations(source, site=None, *args, **kwargs):
 	job_site = get_job_site(site)
 	with current_site(job_site):

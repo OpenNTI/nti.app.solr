@@ -16,7 +16,8 @@ from zope.component.hooks import site as current_site
 from nti.app.assessment.interfaces import ICourseEvaluations
 from nti.app.assessment.interfaces import IUsersCourseAssignmentHistories
 
-from nti.contenttypes.courses.interfaces import ICourseInstance
+from nti.contenttypes.courses.interfaces import ICourseInstance,\
+	ICourseCatalogEntry
 
 from nti.contenttypes.presentation.interfaces import IConcreteAsset
 from nti.contenttypes.presentation.interfaces import IUserCreatedAsset
@@ -45,7 +46,10 @@ def index_course_assets(source, site=None, *args, **kwargs):
 	with current_site(job_site):
 		obj = ICourseInstance(finder(source), None)
 		if ICourseInstance.providedBy(obj):
+			ntiid = getattr(ICourseCatalogEntry(obj, None), 'ntiid', None) or obj
+			logger.info("Course %s assets indexing started", ntiid)
 			process_course_assets(obj, index=True)
+			logger.info("Course %s assets indexing completed", ntiid)
 
 def unindex_course_assets(source, site=None, *args, **kwargs):
 	job_site = get_job_site(site)
@@ -69,7 +73,10 @@ def index_course_assignment_feedback(source, site=None, *args, **kwargs):
 	with current_site(job_site):
 		obj = ICourseInstance(finder(source), None)
 		if ICourseInstance.providedBy(obj):
+			ntiid = getattr(ICourseCatalogEntry(obj, None), 'ntiid', None) or obj
+			logger.info("Course %s assignment feedback indexing started", ntiid)
 			process_course_assignment_feedback(obj, index=True)
+			logger.info("Course %s assignment feedback indexing completed", ntiid)
 
 def unindex_course_assignment_feedback(source, site=None, *args, **kwargs):
 	job_site = get_job_site(site)
@@ -92,7 +99,10 @@ def index_course_evaluations(source, site=None, *args, **kwargs):
 	with current_site(job_site):
 		obj = ICourseInstance(finder(source), None)
 		if ICourseInstance.providedBy(obj):
-			process_course_assignment_feedback(obj, index=True)
+			ntiid = getattr(ICourseCatalogEntry(obj, None), 'ntiid', None) or obj
+			logger.info("Course %s evaluations indexing started", ntiid)
+			process_course_evaluations(obj, index=True)
+			logger.info("Course %s evaluations indexing completed", ntiid)
 
 def unindex_course_evaluations(source, site=None, *args, **kwargs):
 	job_site = get_job_site(site)
@@ -121,7 +131,10 @@ def index_course_discussions(source, site=None, *args, **kwargs):
 	with current_site(job_site):
 		obj = ICourseInstance(finder(source), None)
 		if ICourseInstance.providedBy(obj):
+			ntiid = getattr(ICourseCatalogEntry(obj, None), 'ntiid', None) or obj
+			logger.info("Course %s discussions indexing started", ntiid)
 			process_course_discussions(obj, index=True)
+			logger.info("Course %s discussions indexing started", ntiid)
 
 def unindex_course_discussions(source, site=None, *args, **kwargs):
 	job_site = get_job_site(site)
