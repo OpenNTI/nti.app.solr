@@ -88,11 +88,10 @@ def unindex_course_assignment_feedback(source, site=None, *args, **kwargs):
 def process_course_evaluations(obj, index=True):
 	container = ICourseEvaluations(obj, None)
 	if container is not None:
-		size = len(container) - 1
-		for x, item in enumerate(list(container.values())):
+		for item in list(container.values()):
 			catalog = ICoreCatalog(item)
 			operation = catalog.add if index else catalog.remove
-			operation(obj, commit=size == x)
+			operation(obj, commit=False) # wait for server to commit
 
 def index_course_evaluations(source, site=None, *args, **kwargs):
 	job_site = get_job_site(site)
