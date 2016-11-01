@@ -16,8 +16,8 @@ from zope.component.hooks import site as current_site
 from nti.app.assessment.interfaces import ICourseEvaluations
 from nti.app.assessment.interfaces import IUsersCourseAssignmentHistories
 
-from nti.contenttypes.courses.interfaces import ICourseInstance,\
-	ICourseCatalogEntry
+from nti.contenttypes.courses.interfaces import ICourseInstance
+from nti.contenttypes.courses.interfaces import ICourseCatalogEntry
 
 from nti.contenttypes.presentation.interfaces import IConcreteAsset
 from nti.contenttypes.presentation.interfaces import IUserCreatedAsset
