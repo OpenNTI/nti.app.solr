@@ -23,10 +23,14 @@ from nti.dataserver.metadata_index import IX_SHAREDWITH
 
 from nti.metadata import dataserver_metadata_catalog
 
+from nti.solr import USERDATA_QUEUE
+
 from nti.solr.common import finder
+from nti.solr.common import add_to_queue
 from nti.solr.common import get_job_site
 
 from nti.solr.interfaces import ICoreCatalog
+from nti.solr.interfaces import IIndexObjectEvent
 
 def all_user_generated_data(users=(), sharedWith=False):
 	intids = component.getUtility(IIntIds)
@@ -70,3 +74,8 @@ def unindex_userdata(source, site=None, *args, **kwargs):
 		obj = IUser(finder(source), None)
 		if IUser.providedBy(obj):
 			process_userdata(obj, index=False)
+
+@component.adapter(IUser, IIndexObjectEvent)
+def _index_user(obj, event):
+	add_to_queue(USERDATA_QUEUE, index_userdata, obj=obj,
+				 jid='userdata_indexing')
