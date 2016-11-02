@@ -76,15 +76,16 @@ class SOLRSearchView(AbstractAuthenticatedView):
 		params = dict(request.params)
 		params['username'] = username
 		params['term'] =  term
-		params['packge'] = 'tag:nextthought.com,2011-10:OU-HTML-OU_BIOL2124_F_2016_Human_Physiology.introduction_to_human_physiology'
+		params['ntiid'] = 'tag:nextthought.com,2011-10:OU-HTML-OU_BIOL2124_F_2016_Human_Physiology.introduction_to_human_physiology'
 		params['site_names'] = getattr(request, 'possible_site_names', ()) or ('',)
 		result = create_queryobject(username, params)
 		return result
 
 	def __call__(self):
 		request = self.request
+		from IPython.core.debugger import Tracer; Tracer()()
 		term = request.subpath[0] if request.subpath else None
-		searcher = ISOLRSearcher(self.remoteUser())
+		searcher = ISOLRSearcher(self.remoteUser)
 		query = self.construct_queryobject(request, term)
 		return searcher.search(query)
 
