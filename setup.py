@@ -8,6 +8,7 @@ entry_points = {
 		'target = nti.app',
 	],
 	"console_scripts": [
+		"nti_solr_initializer = nti.app.solr.scripts.initializer:main",
 	],
 }
 
