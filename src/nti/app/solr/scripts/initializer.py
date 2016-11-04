@@ -49,7 +49,7 @@ from nti.site.site import get_site_for_site_names
 
 from nti.solr.interfaces import IndexObjectEvent
 
-#: How often to log progress
+#: How often to log progress and savepoints.
 LOG_ITER_COUNT = 1000
 #: How often we commit work
 DEFAULT_COMMIT_BATCH_SIZE = 2000
@@ -84,16 +84,19 @@ class _SolrInitializer(object):
 		"""
 		obj_id = intids.queryId( obj )
 		obj_ntiid = getattr( obj, 'ntiid', None )
-		result = False
-		if obj_id is not None and obj_id not in self.seen_intids:
+
+		if 		(obj_id is not None and obj_id in self.seen_intids) \
+			or 	(obj_ntiid is not None and obj_ntiid in self.seen_ntiids):
+			return False
+
+		if obj_id is not None:
 			self.seen_intids.add( obj_id )
-			result = True
-		elif obj_ntiid is not None and obj_ntiid not in self.seen_ntiids:
+		if obj_ntiid is not None:
 			self.seen_ntiids.add( obj_ntiid )
-			result = True
-		elif obj_ntiid is None and obj_id is None:
+		if obj_ntiid is None and obj_id is None:
 			logger.warn( 'Object without ntiid or intid (%s)', obj )
-		return result
+			return False
+		return True
 
 	def user_iter(self):
 		site_policy = component.queryUtility( ISitePolicyUserEventListener )
