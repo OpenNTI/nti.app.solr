@@ -105,7 +105,11 @@ class _SolrInitializer(object):
 			site_community = Community.get_community( community_username )
 			if site_community is not None:
 				logger.warn( "[%s] Using community %s", self.site_name, community_username )
-				return site_community.iter_members()
+				try:
+					return site_community.iter_members()
+				except AttributeError:
+					logger.warn( "[%s] Not an iterable community (%s)",
+								 self.site_name, community_username )
 		logger.warn( "[%s] No community found for site", self.site_name )
 
 	def package_iter(self):
