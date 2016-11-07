@@ -9,6 +9,8 @@ __docformat__ = "restructuredtext en"
 
 logger = __import__('logging').getLogger(__name__)
 
+from zope import component
+
 from zope.event import notify
 
 from pyramid import httpexceptions as hexc
@@ -21,8 +23,8 @@ from nti.app.base.abstract_views import AbstractAuthenticatedView
 from nti.app.solr.views import SOLRPathAdapter
 
 from nti.contentlibrary.interfaces import IContentUnit
-
-from nti.contentsearch.search_utils import create_queryobject
+from nti.contentlibrary.interfaces import IGlobalContentPackage
+from nti.contentlibrary.interfaces import IContentPackageLibrary
 
 from nti.contenttypes.presentation.interfaces import INTIMedia 
 from nti.contenttypes.presentation.interfaces import INTITranscript 
@@ -33,7 +35,6 @@ from nti.dataserver.interfaces import IUserGeneratedData
 
 from nti.externalization.proxy import removeAllProxies
 
-from nti.solr.interfaces import ISOLRSearcher
 from nti.solr.interfaces import IndexObjectEvent
 from nti.solr.interfaces import UnindexObjectEvent
 
@@ -61,33 +62,6 @@ class SOLRIndexObjectView(AbstractAuthenticatedView):
 			raise hexc.HTTPNotFound()
 		self._notify(context)
 		return hexc.HTTPNoContent()
-
-@view_config(name='search')
-@view_defaults(route_name='objects.generic.traversal',
-			   renderer='rest',
-			   request_method='GET',
-			   context=SOLRPathAdapter,
-			   permission=nauth.ACT_NTI_ADMIN)
-class SOLRSearchView(AbstractAuthenticatedView):
-
-	@classmethod
-	def construct_queryobject(cls, request, term):
-		username = request.authenticated_userid
-		params = dict(request.params)
-		params['username'] = username
-		params['term'] =  term
-		params['ntiid'] = 'tag:nextthought.com,2011-10:OU-HTML-OU_BIOL2124_F_2016_Human_Physiology.introduction_to_human_physiology'
-		params['site_names'] = getattr(request, 'possible_site_names', ()) or ('',)
-		result = create_queryobject(username, params)
-		return result
-
-	def __call__(self):
-		request = self.request
-		from IPython.core.debugger import Tracer; Tracer()()
-		term = request.subpath[0] if request.subpath else None
-		searcher = ISOLRSearcher(self.remoteUser)
-		query = self.construct_queryobject(request, term)
-		return searcher.search(query)
 
 @view_config(name='unindex')
 @view_defaults(route_name='objects.generic.traversal',
@@ -142,4 +116,20 @@ class UnindexObjectView(UnindexSOLRObjectView):
 
 	def __call__(self):
 		self._notify(self.context)
+		return hexc.HTTPNoContent()
+
+@view_config(name='IndexAllLibraries')
+@view_defaults(route_name='objects.generic.traversal',
+			   renderer='rest',
+			   request_method='POST',
+			   context=SOLRPathAdapter,
+			   permission=nauth.ACT_NTI_ADMIN)
+class IndexAllLibrariesView(SOLRIndexObjectView):
+
+	def __call__(self):
+		library = component.queryUtility(IContentPackageLibrary)
+		if library is not None:
+			for package in library.contentPackages or ():
+				if not IGlobalContentPackage.providedBy(package):
+					self._notify(package)
 		return hexc.HTTPNoContent()
