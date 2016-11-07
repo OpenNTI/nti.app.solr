@@ -36,11 +36,10 @@ def process_content_package_evaluations(obj, index=True):
 		for child in unit.children or ():
 			recur(child)
 	recur(obj)
-	size = len(collector) - 1
-	for x, a in enumerate(collector):
+	for a in collector:
 		catalog = ICoreCatalog(a)
 		operation = catalog.add if index else catalog.remove
-		operation(a, commit=size == x)  # wait for server to commit
+		operation(a, commit=False)  # wait for server to commit
 
 def index_content_package_evaluations(source, site=None, *args, **kwargs):
 	job_site = get_job_site(site)
