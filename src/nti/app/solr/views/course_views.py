@@ -23,6 +23,7 @@ from nti.app.solr.views.general_views import SOLRIndexObjectView
 from nti.contenttypes.courses.interfaces import ICourseCatalog
 from nti.contenttypes.courses.interfaces import ICourseInstance
 from nti.contenttypes.courses.interfaces import ICourseCatalogEntry
+
 from nti.contenttypes.courses.legacy_catalog import ILegacyCourseCatalogEntry
 
 from nti.contenttypes.courses.utils import get_course_subinstances

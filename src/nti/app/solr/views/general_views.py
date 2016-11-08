@@ -31,6 +31,8 @@ from nti.contenttypes.presentation.interfaces import INTITranscript
 from nti.contenttypes.presentation.interfaces import INTIDocketAsset
 
 from nti.dataserver import authorization as nauth
+
+from nti.dataserver.interfaces import IUser
 from nti.dataserver.interfaces import IUserGeneratedData
 
 from nti.externalization.proxy import removeAllProxies
@@ -86,6 +88,7 @@ class UnindexSOLRObjectView(AbstractAuthenticatedView):
 		self._notify(context)
 		return hexc.HTTPNoContent()
 
+@view_config(context=IUser)
 @view_config(context=INTIMedia)
 @view_config(context=IContentUnit)
 @view_config(context=INTITranscript)
@@ -102,6 +105,7 @@ class IndexObjectView(SOLRIndexObjectView):
 		self._notify(self.context)
 		return hexc.HTTPNoContent()
 
+@view_config(context=IUser)
 @view_config(context=INTIMedia)
 @view_config(context=IContentUnit)
 @view_config(context=INTITranscript)
