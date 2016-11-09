@@ -17,7 +17,11 @@ from nti.app.assessment.interfaces import ICourseEvaluations
 from nti.app.assessment.interfaces import IUsersCourseAssignmentHistories
 
 from nti.contenttypes.courses.interfaces import ICourseInstance
+from nti.contenttypes.courses.interfaces import ICourseSubInstance
 from nti.contenttypes.courses.interfaces import ICourseCatalogEntry
+from nti.contenttypes.courses.interfaces import ICourseInstanceImportedEvent
+
+from nti.contenttypes.courses.utils import get_course_hierarchy
 
 from nti.contenttypes.presentation.interfaces import IConcreteAsset
 from nti.contenttypes.presentation.interfaces import IUserCreatedAsset
@@ -143,8 +147,14 @@ def unindex_course_discussions(source, site=None, *args, **kwargs):
 			process_course_discussions(obj, index=False)
 
 @component.adapter(ICourseInstance, IIndexObjectEvent)
-def _index_course(obj, event):
+def _index_course(obj, event=None):
 	add_to_queue(COURSES_QUEUE, index_course_assets, obj, jid='assets_added')
 	add_to_queue(COURSES_QUEUE, index_course_evaluations, obj, jid='evaluations_added')
 	add_to_queue(COURSES_QUEUE, index_course_discussions, obj, jid='discussions_added')
 	add_to_queue(COURSES_QUEUE, index_course_assignment_feedback, obj, jid='feedback_added')
+
+@component.adapter(ICourseInstance, ICourseInstanceImportedEvent)
+def _course_imported(obj, event):
+	if not ICourseSubInstance.providedBy(obj):
+		for course in get_course_hierarchy(obj):
+			_index_course(course, None)

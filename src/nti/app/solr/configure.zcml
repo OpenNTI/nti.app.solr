@@ -23,6 +23,10 @@
 		<subscriber handler=".courses._index_course"
 					for="nti.contenttypes.courses.interfaces.ICourseInstance
 						 nti.solr.interfaces.IIndexObjectEvent"/>
+						 
+		<subscriber handler=".courses._course_imported"
+					for="nti.contenttypes.courses.interfaces.ICourseInstance
+						 nti.contenttypes.courses.interfaces.ICourseInstanceImportedEvent"/>
 	</configure>
 
 	<configure zcml:condition="installed nti.assessment">
