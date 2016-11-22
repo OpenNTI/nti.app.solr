@@ -143,6 +143,7 @@ class IndexAllLibrariesView(SOLRIndexObjectView):
 		return hexc.HTTPNoContent()
 
 @view_config(name='EmptyQueues')
+@view_config(name='empty_queues')
 @view_defaults(route_name='objects.generic.traversal',
 			   renderer='rest',
 			   request_method='POST',
