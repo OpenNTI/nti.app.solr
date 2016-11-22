@@ -37,10 +37,6 @@ from nti.dataserver.interfaces import IUserGeneratedData
 
 from nti.externalization.proxy import removeAllProxies
 
-from nti.solr import QUEUE_NAMES
-
-from nti.solr.common import get_job_queue
-
 from nti.solr.interfaces import IndexObjectEvent
 from nti.solr.interfaces import UnindexObjectEvent
 
@@ -140,19 +136,4 @@ class IndexAllLibrariesView(SOLRIndexObjectView):
 			for package in library.contentPackages or ():
 				if not IGlobalContentPackage.providedBy(package):
 					self._notify(package)
-		return hexc.HTTPNoContent()
-
-@view_config(name='EmptyQueues')
-@view_config(name='empty_queues')
-@view_defaults(route_name='objects.generic.traversal',
-			   renderer='rest',
-			   request_method='POST',
-			   context=SOLRPathAdapter,
-			   permission=nauth.ACT_NTI_ADMIN)
-class EmptyQueuesView(SOLRIndexObjectView):
-
-	def __call__(self):
-		for name in QUEUE_NAMES:
-			queue = get_job_queue(name)
-			queue.empty()
 		return hexc.HTTPNoContent()
