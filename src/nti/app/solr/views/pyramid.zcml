@@ -13,4 +13,8 @@
 		<pyramid:scan package=".course_views" />
 	</configure>
 
+	<configure zcml:condition="installed nti.contentlibrary">
+		<pyramid:scan package=".content_views" />
+	</configure>
+
 </configure>

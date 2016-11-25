@@ -18,45 +18,50 @@ from pyramid.view import view_defaults
 
 from nti.app.solr.views import SOLRPathAdapter
 from nti.app.solr.views.general_views import SOLRIndexObjectView
+from nti.app.solr.views.general_views import UnindexSOLRObjectView
 
-from nti.contenttypes.courses.interfaces import ICourseCatalog
-from nti.contenttypes.courses.interfaces import ICourseInstance
-from nti.contenttypes.courses.interfaces import ICourseCatalogEntry
-
-from nti.contenttypes.courses.legacy_catalog import ILegacyCourseCatalogEntry
-
-from nti.contenttypes.courses.utils import get_course_subinstances
+from nti.contentlibrary.interfaces import IContentUnit
+from nti.contentlibrary.interfaces import IGlobalContentPackage
+from nti.contentlibrary.interfaces import IContentPackageLibrary
 
 from nti.dataserver import authorization as nauth
 
-@view_config(context=ICourseInstance)
-@view_config(context=ICourseCatalogEntry)
+@view_config(context=IContentUnit)
 @view_defaults(route_name='objects.generic.traversal',
 			   renderer='rest',
 			   name='solr_index',
 			   request_method='POST',
 			   permission=nauth.ACT_NTI_ADMIN)
-class IndexCourseView(SOLRIndexObjectView):
+class IndexObjectView(SOLRIndexObjectView):
 
 	def __call__(self):
-		self._notify(ICourseInstance(self.context))
-		for course in get_course_subinstances(self.context):
-			self._notify(course)
+		self._notify(self.context)
 		return hexc.HTTPNoContent()
 
-@view_config(name='IndexAllCourses')
+@view_config(context=IContentUnit)
+@view_defaults(route_name='objects.generic.traversal',
+			   renderer='rest',
+			   name='solr_unindex',
+			   request_method='POST',
+			   permission=nauth.ACT_NTI_ADMIN)
+class UnindexObjectView(UnindexSOLRObjectView):
+
+	def __call__(self):
+		self._notify(self.context)
+		return hexc.HTTPNoContent()
+
+@view_config(name='IndexAllLibraries')
 @view_defaults(route_name='objects.generic.traversal',
 			   renderer='rest',
 			   request_method='POST',
 			   context=SOLRPathAdapter,
 			   permission=nauth.ACT_NTI_ADMIN)
-class IndexAllCoursesView(SOLRIndexObjectView):
+class IndexAllLibrariesView(SOLRIndexObjectView):
 
 	def __call__(self):
-		catalog = component.queryUtility(ICourseCatalog)
-		if catalog is not None:
-			for entry in catalog.iterCatalogEntries():
-				if not ILegacyCourseCatalogEntry.providedBy(entry):
-					course = ICourseInstance(entry)
-					self._notify(course)
+		library = component.queryUtility(IContentPackageLibrary)
+		if library is not None:
+			for package in library.contentPackages or ():
+				if not IGlobalContentPackage.providedBy(package):
+					self._notify(package)
 		return hexc.HTTPNoContent()

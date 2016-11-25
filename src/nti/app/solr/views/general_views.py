@@ -9,8 +9,6 @@ __docformat__ = "restructuredtext en"
 
 logger = __import__('logging').getLogger(__name__)
 
-from zope import component
-
 from zope.event import notify
 
 from pyramid import httpexceptions as hexc
@@ -21,10 +19,6 @@ from pyramid.view import view_defaults
 from nti.app.base.abstract_views import AbstractAuthenticatedView
 
 from nti.app.solr.views import SOLRPathAdapter
-
-from nti.contentlibrary.interfaces import IContentUnit
-from nti.contentlibrary.interfaces import IGlobalContentPackage
-from nti.contentlibrary.interfaces import IContentPackageLibrary
 
 from nti.contenttypes.presentation.interfaces import INTIMedia 
 from nti.contenttypes.presentation.interfaces import INTITranscript 
@@ -90,7 +84,6 @@ class UnindexSOLRObjectView(AbstractAuthenticatedView):
 
 @view_config(context=IUser)
 @view_config(context=INTIMedia)
-@view_config(context=IContentUnit)
 @view_config(context=INTITranscript)
 @view_config(context=INTIDocketAsset)
 @view_config(context=IUserGeneratedData)
@@ -107,7 +100,6 @@ class IndexObjectView(SOLRIndexObjectView):
 
 @view_config(context=IUser)
 @view_config(context=INTIMedia)
-@view_config(context=IContentUnit)
 @view_config(context=INTITranscript)
 @view_config(context=INTIDocketAsset)
 @view_config(context=IUserGeneratedData)
@@ -120,20 +112,4 @@ class UnindexObjectView(UnindexSOLRObjectView):
 
 	def __call__(self):
 		self._notify(self.context)
-		return hexc.HTTPNoContent()
-
-@view_config(name='IndexAllLibraries')
-@view_defaults(route_name='objects.generic.traversal',
-			   renderer='rest',
-			   request_method='POST',
-			   context=SOLRPathAdapter,
-			   permission=nauth.ACT_NTI_ADMIN)
-class IndexAllLibrariesView(SOLRIndexObjectView):
-
-	def __call__(self):
-		library = component.queryUtility(IContentPackageLibrary)
-		if library is not None:
-			for package in library.contentPackages or ():
-				if not IGlobalContentPackage.providedBy(package):
-					self._notify(package)
 		return hexc.HTTPNoContent()
