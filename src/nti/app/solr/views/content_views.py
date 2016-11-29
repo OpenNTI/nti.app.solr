@@ -58,11 +58,14 @@ class UnindexObjectView(UnindexSOLRObjectView):
 			   permission=nauth.ACT_NTI_ADMIN)
 class IndexAllContentPackagesView(SOLRIndexObjectView):
 
+	def predicate(self, context):
+		return not IGlobalContentPackage.providedBy(context)
+
 	def __call__(self):
 		library = component.queryUtility(IContentPackageLibrary)
 		if library is not None:
 			for package in library.contentPackages or ():
-				if not IGlobalContentPackage.providedBy(package):
+				if self.predicate(package):
 					self._notify(package)
 		return hexc.HTTPNoContent()
 
@@ -72,12 +75,7 @@ class IndexAllContentPackagesView(SOLRIndexObjectView):
 			   request_method='POST',
 			   context=SOLRPathAdapter,
 			   permission=nauth.ACT_NTI_ADMIN)
-class IndexLegacyContentPackagesView(SOLRIndexObjectView):
+class IndexLegacyContentPackagesView(IndexAllContentPackagesView):
 
-	def __call__(self):
-		library = component.queryUtility(IContentPackageLibrary)
-		if library is not None:
-			for package in library.contentPackages or ():
-				if IGlobalContentPackage.providedBy(package):
-					self._notify(package)
-		return hexc.HTTPNoContent()
+	def predicate(self, context):
+		return IGlobalContentPackage.providedBy(context)

@@ -52,11 +52,25 @@ class IndexCourseView(SOLRIndexObjectView):
 			   permission=nauth.ACT_NTI_ADMIN)
 class IndexAllCoursesView(SOLRIndexObjectView):
 
+	def predicate(self, context):
+		return not ILegacyCourseCatalogEntry.providedBy(context)
+
 	def __call__(self):
 		catalog = component.queryUtility(ICourseCatalog)
 		if catalog is not None:
 			for entry in catalog.iterCatalogEntries():
-				if not ILegacyCourseCatalogEntry.providedBy(entry):
+				if self.predicate(entry):
 					course = ICourseInstance(entry)
 					self._notify(course)
 		return hexc.HTTPNoContent()
+
+@view_config(name='IndexLegacyCourses')
+@view_defaults(route_name='objects.generic.traversal',
+			   renderer='rest',
+			   request_method='POST',
+			   context=SOLRPathAdapter,
+			   permission=nauth.ACT_NTI_ADMIN)
+class IndexLegacyCoursesView(IndexAllCoursesView):
+
+	def predicate(self, context):
+		return ILegacyCourseCatalogEntry.providedBy(context)
