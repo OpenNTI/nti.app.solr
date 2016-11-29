@@ -50,18 +50,34 @@ class UnindexObjectView(UnindexSOLRObjectView):
 		self._notify(self.context)
 		return hexc.HTTPNoContent()
 
-@view_config(name='IndexAllLibraries')
+@view_config(name='IndexAllContentPackages')
 @view_defaults(route_name='objects.generic.traversal',
 			   renderer='rest',
 			   request_method='POST',
 			   context=SOLRPathAdapter,
 			   permission=nauth.ACT_NTI_ADMIN)
-class IndexAllLibrariesView(SOLRIndexObjectView):
+class IndexAllContentPackagesView(SOLRIndexObjectView):
 
 	def __call__(self):
 		library = component.queryUtility(IContentPackageLibrary)
 		if library is not None:
 			for package in library.contentPackages or ():
 				if not IGlobalContentPackage.providedBy(package):
+					self._notify(package)
+		return hexc.HTTPNoContent()
+
+@view_config(name='IndexLegacyContentPackages')
+@view_defaults(route_name='objects.generic.traversal',
+			   renderer='rest',
+			   request_method='POST',
+			   context=SOLRPathAdapter,
+			   permission=nauth.ACT_NTI_ADMIN)
+class IndexLegacyContentPackagesView(SOLRIndexObjectView):
+
+	def __call__(self):
+		library = component.queryUtility(IContentPackageLibrary)
+		if library is not None:
+			for package in library.contentPackages or ():
+				if IGlobalContentPackage.providedBy(package):
 					self._notify(package)
 		return hexc.HTTPNoContent()
