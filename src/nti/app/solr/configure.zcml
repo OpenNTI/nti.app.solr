@@ -31,11 +31,11 @@
 
 	<configure zcml:condition="installed nti.assessment">
 		<configure zcml:condition="installed nti.contentlibrary">
-			<subscriber handler=".evaluations._index_contentpackage"
+			<subscriber handler=".contentunits._index_contentpackage"
 						for="nti.contentlibrary.interfaces.IContentPackage
 							 nti.solr.interfaces.IIndexObjectEvent"/>
 							 
-			<subscriber handler=".evaluations._unindex_contentpackage"
+			<subscriber handler=".contentunits._unindex_contentpackage"
 						for="nti.contentlibrary.interfaces.IContentPackage
 							 nti.solr.interfaces.IUnindexObjectEvent"/>
 		</configure>
