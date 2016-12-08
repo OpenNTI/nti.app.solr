@@ -101,11 +101,13 @@ class _SolrInitializer(object):
 
 	def package_iter(self):
 		try:
+			from nti.contentlibrary.interfaces import IGlobalContentPackage
 			from nti.contentlibrary.interfaces import IContentPackageLibrary
 			catalog = component.queryUtility(IContentPackageLibrary)
 			if catalog is not None:
 				for package in catalog.contentPackages or ():
-					yield package
+					if not IGlobalContentPackage.providedBy(package):
+						yield package
 		except (ImportError):
 			return
 
