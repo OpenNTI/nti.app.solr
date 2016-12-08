@@ -23,16 +23,11 @@ from zope import component
 
 from zope.component.hooks import site as current_site
 
-from zope.container.contained import Contained
-
 from zope.event import notify
 
 from zope.intid.interfaces import IIntIds
 
 from nti.appserver.policies.interfaces import ISitePolicyUserEventListener
-
-from nti.contentlibrary.interfaces import IGlobalContentPackage
-from nti.contentlibrary.interfaces import IContentPackageLibrary
 
 from nti.dataserver.interfaces import IDataserver
 from nti.dataserver.interfaces import IDataserverTransactionRunner
@@ -51,17 +46,9 @@ from nti.solr.interfaces import IndexObjectEvent
 
 #: How often to log progress and savepoints.
 LOG_ITER_COUNT = 1000
+
 #: How often we commit work
 DEFAULT_COMMIT_BATCH_SIZE = 2000
-
-class PluginPoint(Contained):
-
-	def __init__(self, name):
-		self.__name__ = name
-
-PP_APP = PluginPoint('nti.app')
-PP_APP_SITES = PluginPoint('nti.app.sites')
-PP_APP_PRODUCTS = PluginPoint('nti.app.products')
 
 class _SolrInitializer(object):
 
@@ -72,71 +59,74 @@ class _SolrInitializer(object):
 		self.site_name = site_name
 
 	def process_obj(self, obj, intids):
-		logger.info( '[%s] Processing (%s) (%s) (%s)',
+		logger.info('[%s] Processing (%s) (%s) (%s)',
 					  self.site_name, obj,
-					  intids.queryId( obj ),
-					  getattr( obj, 'ntiid', None ) )
-		notify( IndexObjectEvent( obj ) )
+					  intids.queryId(obj),
+					  getattr(obj, 'ntiid', None))
+		notify(IndexObjectEvent(obj))
 
 	def _is_new_object(self, obj, intids):
 		"""
 		Defines if the given object has been processed yet.
 		"""
-		obj_id = intids.queryId( obj )
-		obj_ntiid = getattr( obj, 'ntiid', None )
+		obj_id = intids.queryId(obj)
+		obj_ntiid = getattr(obj, 'ntiid', None)
 
 		if 		(obj_id is not None and obj_id in self.seen_intids) \
 			or 	(obj_ntiid is not None and obj_ntiid in self.seen_ntiids):
 			return False
 
 		if obj_id is not None:
-			self.seen_intids.add( obj_id )
+			self.seen_intids.add(obj_id)
 		if obj_ntiid is not None:
-			self.seen_ntiids.add( obj_ntiid )
+			self.seen_ntiids.add(obj_ntiid)
 		if obj_ntiid is None and obj_id is None:
-			logger.warn( 'Object without ntiid or intid (%s)', obj )
+			logger.warn('Object without ntiid or intid (%s)', obj)
 			return False
 		return True
 
 	def user_iter(self):
-		site_policy = component.queryUtility( ISitePolicyUserEventListener )
+		site_policy = component.queryUtility(ISitePolicyUserEventListener)
 		community_username = getattr(site_policy, 'COM_USERNAME', '')
 		if community_username:
-			site_community = Community.get_community( community_username )
+			site_community = Community.get_community(community_username)
 			if site_community is not None:
-				logger.warn( "[%s] Using community %s", self.site_name, community_username )
+				logger.warn("[%s] Using community %s", self.site_name, community_username)
 				try:
 					return site_community.iter_members()
 				except AttributeError:
-					logger.warn( "[%s] Not an iterable community (%s)",
-								 self.site_name, community_username )
-		logger.warn( "[%s] No community found for site", self.site_name )
+					logger.warn("[%s] Not an iterable community (%s)",
+								 self.site_name, community_username)
+		logger.warn("[%s] No community found for site", self.site_name)
 
 	def package_iter(self):
-		catalog = component.queryUtility( IContentPackageLibrary )
-		if catalog is not None:
-			for package in catalog.contentPackages or ():
-				if not IGlobalContentPackage.providedBy( package ):
+		try:
+			from nti.contentlibrary.interfaces import IContentPackageLibrary
+			catalog = component.queryUtility(IContentPackageLibrary)
+			if catalog is not None:
+				for package in catalog.contentPackages or ():
 					yield package
+		except (ImportError):
+			return
 
 	def course_iter(self):
 		try:
 			from nti.contenttypes.courses.interfaces import ICourseCatalog
 			from nti.contenttypes.courses.interfaces import ICourseInstance
-			catalog = component.getUtility( ICourseCatalog )
+			catalog = component.getUtility(ICourseCatalog)
 			for entry in catalog.iterCatalogEntries():
-				course = ICourseInstance( entry, None )
+				course = ICourseInstance(entry, None)
 				if course is not None:
 					yield course
 		except (ImportError, component.ComponentLookupError):
 			return
 
 	def init_solr(self):
-		our_site = get_site_for_site_names( (self.site_name,) )
-		with current_site( our_site ):
+		our_site = get_site_for_site_names((self.site_name,))
+		with current_site(our_site):
 			count = 0
 			intids = component.getUtility(IIntIds)
-			for obj in itertools.chain( self.course_iter() or (),
+			for obj in itertools.chain(	self.course_iter() or (),
 										self.package_iter() or (),
 										self.user_iter() or ()):
 				if self._is_new_object(obj, intids):
@@ -157,7 +147,6 @@ class _SolrInitializer(object):
 		total = 0
 
 		transaction_runner = component.getUtility(IDataserverTransactionRunner)
-
 		while True:
 			try:
 				count = transaction_runner(self.init_solr, retries=2, sleep=1)
@@ -198,7 +187,7 @@ class Processor(object):
 		site_name = getattr(args, 'site', None)
 		sites = None
 		if site_name:
-			site = get_site_for_site_names( tuple( site_name ) )
+			site = get_site_for_site_names(tuple(site_name))
 			sites = (site,)
 
 		batch_size = DEFAULT_COMMIT_BATCH_SIZE
@@ -227,7 +216,7 @@ class Processor(object):
 			raise ValueError("Invalid dataserver environment root directory", env_dir)
 
 		conf_packages = ('nti.solr', 'nti.appserver', 'nti.dataserver',)
-		context = create_context(env_dir, with_library=True)
+		context = create_context(env_dir, with_library=True, plugins=False)
 
 		run_with_dataserver(environment_dir=env_dir,
 							xmlconfig_packages=conf_packages,
