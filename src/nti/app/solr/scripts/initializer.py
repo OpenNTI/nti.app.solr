@@ -14,8 +14,8 @@ import sys
 import time
 import logging
 import argparse
-import itertools
 import transaction
+from functools import partial
 
 import zope.exceptions
 
@@ -123,41 +123,54 @@ class _SolrInitializer(object):
 		except (ImportError, component.ComponentLookupError):
 			return
 
-	def init_solr(self):
+	def _init_iter(self, iterable, intids, count):
+		for obj in iterable or ():
+			if self._is_new_object(obj, intids):
+				self.process_obj(obj, intids)
+				count += 1
+				if count % LOG_ITER_COUNT == 0:
+					logger.info('[%s] Processed %s objects...',
+								self.site_name, count)
+					transaction.savepoint(optimistic=True)
+			if self.batch_size and count > self.batch_size:
+				return (True, count)
+		return (False, count)
+					
+	def init_solr(self, users=True, courses=True, packages=True):
 		our_site = get_site_for_site_names((self.site_name,))
 		with current_site(our_site):
 			count = 0
 			intids = component.getUtility(IIntIds)
-			for obj in itertools.chain(	self.course_iter() or (),
-										self.package_iter() or (),
-										self.user_iter() or ()):
-				if self._is_new_object(obj, intids):
-					self.process_obj(obj, intids)
-					count += 1
-					if count % LOG_ITER_COUNT == 0:
-						logger.info('[%s] Processed %s objects...',
-									self.site_name, count)
-						transaction.savepoint(optimistic=True)
-				if self.batch_size and count > self.batch_size:
+			if courses:
+				must_break, count = self._init_iter(self.course_iter(), intids, count)
+				if must_break:
+					break
+			if packages:
+				must_break, count = self._init_iter(self.package_iter(), intids, count)
+				if must_break:
+					break
+			if users:
+				must_break, count = self._init_iter(self.user_iter(), intids, count)
+				if must_break:
 					break
 			return count
 
-	def __call__(self):
+	def __call__(self, users=True, courses=True, packages=True):
 		logger.info('[%s] Initializing solr intializer (batch_size=%s)',
 					self.site_name, self.batch_size)
 		now = time.time()
 		total = 0
 
+		runner = partial(self.init_solr, users=users, courses=courses, packages=packages)
 		transaction_runner = component.getUtility(IDataserverTransactionRunner)
 		while True:
 			try:
-				count = transaction_runner(self.init_solr, retries=2, sleep=1)
+				count = transaction_runner(runner, retries=2, sleep=1)
 				total += count
 				logger.info('[%s] Committed batch (%s) (total=%s)',
 							 self.site_name, count, total)
 
-				if 		(self.batch_size and count <= self.batch_size) \
-					or 	self.batch_size is None:
+				if 	self.batch_size is None or count <= self.batch_size:
 					break
 			except KeyboardInterrupt:
 				logger.info('[%s] Exiting solr initializer', self.site_name)
@@ -175,9 +188,15 @@ class Processor(object):
 								help="Dataserver environment root directory")
 		arg_parser.add_argument('--batch_size', dest='batch_size',
 								help="Commit after each batch")
-		arg_parser.add_argument('--site', dest='site', help="request SITE")
+		arg_parser.add_argument('-s', '--site', dest='site', help="request SITE")
 		arg_parser.add_argument('-v', '--verbose', help="Be verbose",
 								action='store_true', dest='verbose')
+		arg_parser.add_argument('-u', '--users', help="Index users",
+								action='store_true', dest='users')
+		arg_parser.add_argument('-c', '--courses', help="Index courses",
+								action='store_true', dest='courses')
+		arg_parser.add_argument('-p', '--packages', help="Index packages",
+								action='store_true', dest='packages')
 		return arg_parser
 
 	def set_log_formatter(self, args):
@@ -202,9 +221,11 @@ class Processor(object):
 		with current_site(ds.dataserver_folder):
 			sites = get_all_host_sites() if sites is None else sites
 			for site in sites:
-				solr_initializer = _SolrInitializer(batch_size, site.__name__,
-													seen_intids, seen_ntiids)
-				solr_initializer()
+				solr_initializer = _SolrInitializer(batch_size, 
+													site.__name__,
+													seen_intids, 
+													seen_ntiids)
+				solr_initializer(args.users, args.courses, args.packages)
 		sys.exit()
 
 	def __call__(self, *args, **kwargs):
