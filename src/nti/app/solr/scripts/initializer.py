@@ -144,15 +144,15 @@ class _SolrInitializer(object):
 			if courses:
 				must_break, count = self._init_iter(self.course_iter(), intids, count)
 				if must_break:
-					break
+					return count
 			if packages:
 				must_break, count = self._init_iter(self.package_iter(), intids, count)
 				if must_break:
-					break
+					return count
 			if users:
 				must_break, count = self._init_iter(self.user_iter(), intids, count)
 				if must_break:
-					break
+					return count
 			return count
 
 	def __call__(self, users=True, courses=True, packages=True):
