@@ -27,6 +27,8 @@ from nti.contenttypes.presentation.interfaces import INTIDocketAsset
 from nti.dataserver import authorization as nauth
 
 from nti.dataserver.interfaces import IUser
+from nti.dataserver.interfaces import ICommunity
+from nti.dataserver.interfaces import IFriendsList
 from nti.dataserver.interfaces import IUserGeneratedData
 
 from nti.externalization.proxy import removeAllProxies
@@ -112,4 +114,35 @@ class UnindexObjectView(UnindexSOLRObjectView):
 
 	def __call__(self):
 		self._notify(self.context)
+		return hexc.HTTPNoContent()
+
+
+@view_config(context=ICommunity)
+@view_config(context=IFriendsList)
+@view_defaults(route_name='objects.generic.traversal',
+			   renderer='rest',
+			   name='solr_index',
+			   request_method='POST',
+			   permission=nauth.ACT_NTI_ADMIN)
+class IndexMembershipObjectView(SOLRIndexObjectView):
+
+	def __call__(self):
+		self._notify(self.context)
+		for user in self.context:
+			self._notify(user)
+		return hexc.HTTPNoContent()
+
+@view_config(context=ICommunity)
+@view_config(context=IFriendsList)
+@view_defaults(route_name='objects.generic.traversal',
+			   renderer='rest',
+			   name='solr_index',
+			   request_method='POST',
+			   permission=nauth.ACT_NTI_ADMIN)
+class UnindexMembershipObjectView(UnindexSOLRObjectView):
+
+	def __call__(self):
+		self._notify(self.context)
+		for user in self.context:
+			self._notify(user)
 		return hexc.HTTPNoContent()
