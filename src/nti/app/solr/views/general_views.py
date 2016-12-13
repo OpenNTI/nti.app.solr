@@ -116,7 +116,6 @@ class UnindexObjectView(UnindexSOLRObjectView):
 		self._notify(self.context)
 		return hexc.HTTPNoContent()
 
-
 @view_config(context=ICommunity)
 @view_config(context=IFriendsList)
 @view_defaults(route_name='objects.generic.traversal',
