@@ -135,7 +135,7 @@ class IndexMembershipObjectView(SOLRIndexObjectView):
 @view_config(context=IFriendsList)
 @view_defaults(route_name='objects.generic.traversal',
 			   renderer='rest',
-			   name='solr_index',
+			   name='solr_unindex',
 			   request_method='POST',
 			   permission=nauth.ACT_NTI_ADMIN)
 class UnindexMembershipObjectView(UnindexSOLRObjectView):
