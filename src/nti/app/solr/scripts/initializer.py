@@ -104,6 +104,10 @@ class _SolrInitializer(object):
 			from nti.contentlibrary.interfaces import IContentPackageLibrary
 			catalog = component.queryUtility(IContentPackageLibrary)
 			if catalog is not None:
+				try:
+					catalog.syncContentPackages()
+				except AttributeError:
+					pass
 				for package in catalog.contentPackages or ():
 					if not IGlobalContentPackage.providedBy(package):
 						yield package
