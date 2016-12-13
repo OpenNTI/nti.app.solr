@@ -238,7 +238,7 @@ class Processor(object):
 		if not env_dir or not os.path.exists(env_dir) and not os.path.isdir(env_dir):
 			raise ValueError("Invalid dataserver environment root directory", env_dir)
 
-		conf_packages = ('nti.solr', 'nti.appserver', 'nti.dataserver',)
+		conf_packages = ('nti.app.solr', 'nti.appserver', 'nti.dataserver',)
 		context = create_context(env_dir, with_library=True, plugins=False)
 
 		run_with_dataserver(environment_dir=env_dir,
