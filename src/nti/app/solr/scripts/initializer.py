@@ -187,9 +187,7 @@ class Processor(object):
 
 	def create_arg_parser(self):
 		arg_parser = argparse.ArgumentParser(description="Create a user-type object")
-		arg_parser.add_argument('--env_dir', dest='env_dir',
-								help="Dataserver environment root directory")
-		arg_parser.add_argument('--batch_size', dest='batch_size',
+		arg_parser.add_argument('-b', '--batch_size', dest='batch_size',
 								help="Commit after each batch")
 		arg_parser.add_argument('-s', '--site', dest='site', help="request SITE")
 		arg_parser.add_argument('-v', '--verbose', help="Be verbose",
@@ -235,9 +233,7 @@ class Processor(object):
 		arg_parser = self.create_arg_parser()
 		args = arg_parser.parse_args()
 
-		env_dir = args.env_dir
-		if not env_dir:
-			env_dir = os.getenv('DATASERVER_DIR')
+		env_dir = os.getenv('DATASERVER_DIR')
 		if not env_dir or not os.path.exists(env_dir) and not os.path.isdir(env_dir):
 			raise ValueError("Invalid dataserver environment root directory", env_dir)
 
