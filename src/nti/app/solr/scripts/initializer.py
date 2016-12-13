@@ -38,9 +38,8 @@ from nti.dataserver.utils import run_with_dataserver
 
 from nti.dataserver.utils.base_script import create_context
 
+from nti.site.hostpolicy import get_host_site
 from nti.site.hostpolicy import get_all_host_sites
-
-from nti.site.site import get_site_for_site_names
 
 from nti.solr.interfaces import IndexObjectEvent
 
@@ -137,7 +136,7 @@ class _SolrInitializer(object):
 		return (False, count)
 					
 	def init_solr(self, users=True, courses=True, packages=True):
-		our_site = get_site_for_site_names((self.site_name,))
+		our_site = get_host_site(self.site_name)
 		with current_site(our_site):
 			count = 0
 			intids = component.getUtility(IIntIds)
@@ -156,10 +155,10 @@ class _SolrInitializer(object):
 			return count
 
 	def __call__(self, users=True, courses=True, packages=True):
+		total = 0
+		now = time.time()
 		logger.info('[%s] Initializing solr intializer (batch_size=%s)',
 					self.site_name, self.batch_size)
-		now = time.time()
-		total = 0
 
 		runner = partial(self.init_solr, users=users, courses=courses, packages=packages)
 		transaction_runner = component.getUtility(IDataserverTransactionRunner)
@@ -206,10 +205,10 @@ class Processor(object):
 	def process_args(self, args):
 		self.set_log_formatter(args)
 		site_name = getattr(args, 'site', None)
-		sites = None
 		if site_name:
-			site = get_site_for_site_names(tuple(site_name))
-			sites = (site,)
+			sites = (get_host_site(site_name),)
+		else:
+			sites = ()
 
 		batch_size = DEFAULT_COMMIT_BATCH_SIZE
 		if args.batch_size:
@@ -220,7 +219,7 @@ class Processor(object):
 		ds = component.getUtility(IDataserver)
 		with current_site(ds.dataserver_folder):
 			sites = get_all_host_sites() if sites is None else sites
-			for site in sites:
+			for site in sites or ():
 				solr_initializer = _SolrInitializer(batch_size, 
 													site.__name__,
 													seen_intids, 
@@ -239,7 +238,7 @@ class Processor(object):
 			raise ValueError("Invalid dataserver environment root directory", env_dir)
 
 		conf_packages = ('nti.app.solr', 'nti.appserver', 'nti.dataserver',)
-		context = create_context(env_dir, with_library=True, plugins=False)
+		context = create_context(env_dir, with_library=True, plugins=True)
 
 		run_with_dataserver(environment_dir=env_dir,
 							xmlconfig_packages=conf_packages,
