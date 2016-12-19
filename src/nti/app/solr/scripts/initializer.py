@@ -30,6 +30,7 @@ from zope.intid.interfaces import IIntIds
 from nti.appserver.policies.interfaces import ISitePolicyUserEventListener
 
 from nti.dataserver.interfaces import IDataserver
+from nti.dataserver.interfaces import IShardLayout
 from nti.dataserver.interfaces import IDataserverTransactionRunner
 
 from nti.dataserver.users.communities import Community
@@ -98,6 +99,12 @@ class _SolrInitializer(object):
 								 self.site_name, community_username)
 		logger.warn("[%s] No community found for site", self.site_name)
 
+	def all_users_iter(self):
+		dataserver = component.getUtility(IDataserver)
+		users = IShardLayout(dataserver).users_folder
+		for user in users.values():
+			yield user
+
 	def package_iter(self):
 		try:
 			from nti.contentlibrary.interfaces import IGlobalContentPackage
@@ -135,7 +142,7 @@ class _SolrInitializer(object):
 				return (True, count)
 		return (False, count)
 					
-	def init_solr(self, users=True, courses=True, packages=True):
+	def init_solr(self, all_users=False, site_users=True, courses=True, packages=True):
 		our_site = get_host_site(self.site_name)
 		with current_site(our_site):
 			count = 0
@@ -148,19 +155,24 @@ class _SolrInitializer(object):
 				must_break, count = self._init_iter(self.package_iter(), intids, count)
 				if must_break:
 					return count
-			if users:
+			if site_users:
 				must_break, count = self._init_iter(self.user_iter(), intids, count)
+				if must_break:
+					return count
+			elif all_users:
+				must_break, count = self._init_iter(self.all_users_iter(), intids, count)
 				if must_break:
 					return count
 			return count
 
-	def __call__(self, users=True, courses=True, packages=True):
+	def __call__(self, all_users=False, site_users=True, courses=True, packages=True):
 		total = 0
 		now = time.time()
 		logger.info('[%s] Initializing solr intializer (batch_size=%s)',
 					self.site_name, self.batch_size)
 
-		runner = partial(self.init_solr, users=users, courses=courses, packages=packages)
+		runner = partial(self.init_solr, all_users=all_users, site_users=site_users, 
+						 courses=courses, packages=packages)
 		transaction_runner = component.getUtility(IDataserverTransactionRunner)
 		while True:
 			try:
@@ -188,12 +200,16 @@ class Processor(object):
 		arg_parser.add_argument('-s', '--site', dest='site', help="request SITE")
 		arg_parser.add_argument('-v', '--verbose', help="Be verbose",
 								action='store_true', dest='verbose')
-		arg_parser.add_argument('-u', '--users', help="Index users",
-								action='store_true', dest='users')
 		arg_parser.add_argument('-c', '--courses', help="Index courses",
 								action='store_true', dest='courses')
 		arg_parser.add_argument('-p', '--packages', help="Index packages",
 								action='store_true', dest='packages')
+		
+		site_group = arg_parser.add_mutually_exclusive_group()
+		site_group.add_argument('-u', '--users', help="Index site users",
+								action='store_true', dest='site_users')
+		site_group.add_argument('-a', '--all', dest='all_users',
+								 help="Index all users", action='store_true')
 		return arg_parser
 
 	def set_log_formatter(self, args):
