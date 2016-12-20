@@ -165,11 +165,24 @@ class _SolrInitializer(object):
 					return count
 			return count
 
+	def _load_library(self):
+		try:
+			from nti.contentlibrary.interfaces import IContentPackageLibrary
+			library = component.queryUtility(IContentPackageLibrary)
+			if library is not None:
+				library.syncContentPackages()
+		except ImportError:
+			pass
+	
 	def __call__(self, all_users=False, site_users=True, courses=True, packages=True):
 		total = 0
 		now = time.time()
 		logger.info('[%s] Initializing solr intializer (batch_size=%s)',
 					self.site_name, self.batch_size)
+
+		# load library before running transaction runner
+		if packages or courses:
+			self._load_library()
 
 		runner = partial(self.init_solr, all_users=all_users, site_users=site_users, 
 						 courses=courses, packages=packages)
