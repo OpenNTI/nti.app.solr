@@ -238,7 +238,10 @@ class Processor(object):
 													site.__name__,
 													seen_intids, 
 													seen_ntiids)
-				solr_initializer(args.users, args.courses, args.packages)
+				solr_initializer(all_users=args.all_users, 
+								 site_users=args.site_users, 
+								 courses=args.courses, 
+								 packages=args.args.courses)
 		sys.exit()
 
 	def __call__(self, *args, **kwargs):
