@@ -180,10 +180,6 @@ class _SolrInitializer(object):
 		logger.info('[%s] Initializing solr intializer (batch_size=%s)',
 					self.site_name, self.batch_size)
 
-		# load library before running transaction runner
-		if packages or courses:
-			self._load_library()
-
 		runner = partial(self.init_solr, all_users=all_users, site_users=site_users, 
 						 courses=courses, packages=packages)
 		transaction_runner = component.getUtility(IDataserverTransactionRunner)
@@ -241,6 +237,10 @@ class Processor(object):
 		if args.batch_size:
 			batch_size = args.batch_size
 
+		# load library before running transaction runner
+		if args.packages or args.courses:
+			self._load_library()
+			
 		seen_intids = set()
 		seen_ntiids = set()
 		ds = component.getUtility(IDataserver)
