@@ -165,15 +165,6 @@ class _SolrInitializer(object):
 					return count
 			return count
 
-	def _load_library(self):
-		try:
-			from nti.contentlibrary.interfaces import IContentPackageLibrary
-			library = component.queryUtility(IContentPackageLibrary)
-			if library is not None:
-				library.syncContentPackages()
-		except ImportError:
-			pass
-	
 	def __call__(self, all_users=False, site_users=True, courses=True, packages=True):
 		total = 0
 		now = time.time()
@@ -225,6 +216,15 @@ class Processor(object):
 		ei = '%(asctime)s %(levelname)-5.5s [%(name)s][%(thread)d][%(threadName)s] %(message)s'
 		logging.root.handlers[0].setFormatter(zope.exceptions.log.Formatter(ei))
 
+	def _load_library(self):
+		try:
+			from nti.contentlibrary.interfaces import IContentPackageLibrary
+			library = component.queryUtility(IContentPackageLibrary)
+			if library is not None:
+				library.syncContentPackages()
+		except ImportError:
+			pass
+	
 	def process_args(self, args):
 		self.set_log_formatter(args)
 		site_name = getattr(args, 'site', None)
