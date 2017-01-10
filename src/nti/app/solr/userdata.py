@@ -31,6 +31,7 @@ from nti.solr.interfaces import IIndexObjectEvent
 
 
 def all_user_generated_data(users=(), sharedWith=False):
+    seen = set()
     intids = component.getUtility(IIntIds)
     catalog = dataserver_metadata_catalog()
     usernames = {getattr(user, 'username', user).lower()
@@ -42,15 +43,17 @@ def all_user_generated_data(users=(), sharedWith=False):
 
     for uid in uids or ():
         obj = intids.queryObject(uid)
-        if IUserGeneratedData.providedBy(obj):
+        if IUserGeneratedData.providedBy(obj) and uid not in seen:
             yield uid, obj
+            seen.add(uid)
 
     if usernames and sharedWith:
         intids_sharedWith = catalog[IX_SHAREDWITH].apply({'any_of': usernames})
         for uid in intids_sharedWith or ():
             obj = intids.queryObject(uid)
-            if IUserGeneratedData.providedBy(obj):
+            if IUserGeneratedData.providedBy(obj) and uid not in seen:
                 yield uid, obj
+                seen.add(uid)
 
 
 def process_userdata(user, index=True):
