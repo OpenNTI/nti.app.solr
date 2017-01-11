@@ -29,48 +29,51 @@ from nti.contenttypes.courses.utils import get_course_subinstances
 
 from nti.dataserver import authorization as nauth
 
+
 @view_config(context=ICourseInstance)
 @view_config(context=ICourseCatalogEntry)
 @view_defaults(route_name='objects.generic.traversal',
-			   renderer='rest',
-			   name='solr_index',
-			   request_method='POST',
-			   permission=nauth.ACT_NTI_ADMIN)
+               renderer='rest',
+               name='solr_index',
+               request_method='POST',
+               permission=nauth.ACT_NTI_ADMIN)
 class IndexCourseView(SOLRIndexObjectView):
 
-	def __call__(self):
-		self._notify(ICourseInstance(self.context))
-		for course in get_course_subinstances(self.context):
-			self._notify(course)
-		return hexc.HTTPNoContent()
+    def __call__(self):
+        self._notify(ICourseInstance(self.context))
+        for course in get_course_subinstances(self.context):
+            self._notify(course)
+        return hexc.HTTPNoContent()
+
 
 @view_config(name='IndexAllCourses')
 @view_defaults(route_name='objects.generic.traversal',
-			   renderer='rest',
-			   request_method='POST',
-			   context=SOLRPathAdapter,
-			   permission=nauth.ACT_NTI_ADMIN)
+               renderer='rest',
+               request_method='POST',
+               context=SOLRPathAdapter,
+               permission=nauth.ACT_NTI_ADMIN)
 class IndexAllCoursesView(SOLRIndexObjectView):
 
-	def predicate(self, context):
-		return not ILegacyCourseCatalogEntry.providedBy(context)
+    def predicate(self, context):
+        return not ILegacyCourseCatalogEntry.providedBy(context)
 
-	def __call__(self):
-		catalog = component.queryUtility(ICourseCatalog)
-		if catalog is not None:
-			for entry in catalog.iterCatalogEntries():
-				if self.predicate(entry):
-					course = ICourseInstance(entry)
-					self._notify(course)
-		return hexc.HTTPNoContent()
+    def __call__(self):
+        catalog = component.queryUtility(ICourseCatalog)
+        if catalog is not None:
+            for entry in catalog.iterCatalogEntries():
+                if self.predicate(entry):
+                    course = ICourseInstance(entry)
+                    self._notify(course)
+        return hexc.HTTPNoContent()
+
 
 @view_config(name='IndexLegacyCourses')
 @view_defaults(route_name='objects.generic.traversal',
-			   renderer='rest',
-			   request_method='POST',
-			   context=SOLRPathAdapter,
-			   permission=nauth.ACT_NTI_ADMIN)
+               renderer='rest',
+               request_method='POST',
+               context=SOLRPathAdapter,
+               permission=nauth.ACT_NTI_ADMIN)
 class IndexLegacyCoursesView(IndexAllCoursesView):
 
-	def predicate(self, context):
-		return ILegacyCourseCatalogEntry.providedBy(context)
+    def predicate(self, context):
+        return ILegacyCourseCatalogEntry.providedBy(context)

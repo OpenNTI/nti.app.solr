@@ -15,6 +15,7 @@ from zope.container.contained import Contained
 
 from zope.traversing.interfaces import IPathAdapter
 
+
 @interface.implementer(IPathAdapter)
 class SOLRPathAdapter(Contained):
 

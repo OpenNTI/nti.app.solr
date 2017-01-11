@@ -50,6 +50,7 @@ class UnindexObjectView(UnindexSOLRObjectView):
 		self._notify(self.context)
 		return hexc.HTTPNoContent()
 
+
 @view_config(name='IndexAllContentPackages')
 @view_defaults(route_name='objects.generic.traversal',
 			   renderer='rest',

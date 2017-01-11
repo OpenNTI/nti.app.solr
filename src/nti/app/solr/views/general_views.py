@@ -20,8 +20,8 @@ from nti.app.base.abstract_views import AbstractAuthenticatedView
 
 from nti.app.solr.views import SOLRPathAdapter
 
-from nti.contenttypes.presentation.interfaces import INTIMedia 
-from nti.contenttypes.presentation.interfaces import INTITranscript 
+from nti.contenttypes.presentation.interfaces import INTIMedia
+from nti.contenttypes.presentation.interfaces import INTITranscript
 from nti.contenttypes.presentation.interfaces import INTIDocketAsset
 
 from nti.dataserver import authorization as nauth
@@ -38,51 +38,54 @@ from nti.solr.interfaces import UnindexObjectEvent
 
 from nti.solr.utils import object_finder
 
+
 @view_config(name='index')
 @view_defaults(route_name='objects.generic.traversal',
-			   renderer='rest',
-			   request_method='POST',
-			   context=SOLRPathAdapter,
-			   permission=nauth.ACT_NTI_ADMIN)
+               renderer='rest',
+               request_method='POST',
+               context=SOLRPathAdapter,
+               permission=nauth.ACT_NTI_ADMIN)
 class SOLRIndexObjectView(AbstractAuthenticatedView):
 
-	def _notify(self, context):
-		context = removeAllProxies(context)
-		notify(IndexObjectEvent(context))
+    def _notify(self, context):
+        context = removeAllProxies(context)
+        notify(IndexObjectEvent(context))
 
-	def __call__(self):
-		request = self.request
-		uid = request.subpath[0] if request.subpath else None
-		if uid is None:
-			raise hexc.HTTPUnprocessableEntity("Must specify an object id")
-		context = object_finder(uid)
-		if context is None:
-			raise hexc.HTTPNotFound()
-		self._notify(context)
-		return hexc.HTTPNoContent()
+    def __call__(self):
+        request = self.request
+        uid = request.subpath[0] if request.subpath else None
+        if uid is None:
+            raise hexc.HTTPUnprocessableEntity("Must specify an object id")
+        context = object_finder(uid)
+        if context is None:
+            raise hexc.HTTPNotFound()
+        self._notify(context)
+        return hexc.HTTPNoContent()
+
 
 @view_config(name='unindex')
 @view_defaults(route_name='objects.generic.traversal',
-			   renderer='rest',
-			   request_method='POST',
-			   context=SOLRPathAdapter,
-			   permission=nauth.ACT_NTI_ADMIN)
+               renderer='rest',
+               request_method='POST',
+               context=SOLRPathAdapter,
+               permission=nauth.ACT_NTI_ADMIN)
 class UnindexSOLRObjectView(AbstractAuthenticatedView):
 
-	def _notify(self, context):
-		context = removeAllProxies(context)
-		notify(UnindexObjectEvent(context))
+    def _notify(self, context):
+        context = removeAllProxies(context)
+        notify(UnindexObjectEvent(context))
 
-	def __call__(self):
-		request = self.request
-		uid = request.subpath[0] if request.subpath else None
-		if uid is None:
-			raise hexc.HTTPUnprocessableEntity("Must specify an object id")
-		context = object_finder(uid)
-		if context is None:
-			raise hexc.HTTPNotFound()
-		self._notify(context)
-		return hexc.HTTPNoContent()
+    def __call__(self):
+        request = self.request
+        uid = request.subpath[0] if request.subpath else None
+        if uid is None:
+            raise hexc.HTTPUnprocessableEntity("Must specify an object id")
+        context = object_finder(uid)
+        if context is None:
+            raise hexc.HTTPNotFound()
+        self._notify(context)
+        return hexc.HTTPNoContent()
+
 
 @view_config(context=IUser)
 @view_config(context=INTIMedia)
@@ -90,15 +93,16 @@ class UnindexSOLRObjectView(AbstractAuthenticatedView):
 @view_config(context=INTIDocketAsset)
 @view_config(context=IUserGeneratedData)
 @view_defaults(route_name='objects.generic.traversal',
-			   renderer='rest',
-			   name='solr_index',
-			   request_method='POST',
-			   permission=nauth.ACT_NTI_ADMIN)
+               renderer='rest',
+               name='solr_index',
+               request_method='POST',
+               permission=nauth.ACT_NTI_ADMIN)
 class IndexObjectView(SOLRIndexObjectView):
 
-	def __call__(self):
-		self._notify(self.context)
-		return hexc.HTTPNoContent()
+    def __call__(self):
+        self._notify(self.context)
+        return hexc.HTTPNoContent()
+
 
 @view_config(context=IUser)
 @view_config(context=INTIMedia)
@@ -106,42 +110,44 @@ class IndexObjectView(SOLRIndexObjectView):
 @view_config(context=INTIDocketAsset)
 @view_config(context=IUserGeneratedData)
 @view_defaults(route_name='objects.generic.traversal',
-			   renderer='rest',
-			   name='solr_unindex',
-			   request_method='POST',
-			   permission=nauth.ACT_NTI_ADMIN)
+               renderer='rest',
+               name='solr_unindex',
+               request_method='POST',
+               permission=nauth.ACT_NTI_ADMIN)
 class UnindexObjectView(UnindexSOLRObjectView):
 
-	def __call__(self):
-		self._notify(self.context)
-		return hexc.HTTPNoContent()
+    def __call__(self):
+        self._notify(self.context)
+        return hexc.HTTPNoContent()
+
 
 @view_config(context=ICommunity)
 @view_config(context=IFriendsList)
 @view_defaults(route_name='objects.generic.traversal',
-			   renderer='rest',
-			   name='solr_index',
-			   request_method='POST',
-			   permission=nauth.ACT_NTI_ADMIN)
+               renderer='rest',
+               name='solr_index',
+               request_method='POST',
+               permission=nauth.ACT_NTI_ADMIN)
 class IndexMembershipObjectView(SOLRIndexObjectView):
 
-	def __call__(self):
-		self._notify(self.context)
-		for user in self.context:
-			self._notify(user)
-		return hexc.HTTPNoContent()
+    def __call__(self):
+        self._notify(self.context)
+        for user in self.context:
+            self._notify(user)
+        return hexc.HTTPNoContent()
+
 
 @view_config(context=ICommunity)
 @view_config(context=IFriendsList)
 @view_defaults(route_name='objects.generic.traversal',
-			   renderer='rest',
-			   name='solr_unindex',
-			   request_method='POST',
-			   permission=nauth.ACT_NTI_ADMIN)
+               renderer='rest',
+               name='solr_unindex',
+               request_method='POST',
+               permission=nauth.ACT_NTI_ADMIN)
 class UnindexMembershipObjectView(UnindexSOLRObjectView):
 
-	def __call__(self):
-		self._notify(self.context)
-		for user in self.context:
-			self._notify(user)
-		return hexc.HTTPNoContent()
+    def __call__(self):
+        self._notify(self.context)
+        for user in self.context:
+            self._notify(user)
+        return hexc.HTTPNoContent()

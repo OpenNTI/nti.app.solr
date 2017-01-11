@@ -31,37 +31,39 @@ ITEMS = StandardExternalFields.ITEMS
 TOTAL = StandardExternalFields.TOTAL
 ITEM_COUNT = StandardExternalFields.ITEM_COUNT
 
+
 @view_config(name='Jobs')
 @view_config(name='jobs')
 @view_defaults(route_name='objects.generic.traversal',
-			   renderer='rest',
-			   request_method='GET',
-			   context=SOLRPathAdapter,
-			   permission=nauth.ACT_NTI_ADMIN)
+               renderer='rest',
+               request_method='GET',
+               context=SOLRPathAdapter,
+               permission=nauth.ACT_NTI_ADMIN)
 class QueueJobsView(AbstractAuthenticatedView):
 
-	def __call__(self):
-		total = 0
-		result = LocatedExternalDict()
-		items = result[ITEMS] = {}
-		for name in QUEUE_NAMES:
-			queue = get_job_queue(name)
-			items[name] = list(queue.keys())  # snapshopt
-			total += len(items[name])
-		result[TOTAL] = result[ITEM_COUNT] = total
-		return result
+    def __call__(self):
+        total = 0
+        result = LocatedExternalDict()
+        items = result[ITEMS] = {}
+        for name in QUEUE_NAMES:
+            queue = get_job_queue(name)
+            items[name] = list(queue.keys())  # snapshopt
+            total += len(items[name])
+        result[TOTAL] = result[ITEM_COUNT] = total
+        return result
+
 
 @view_config(name='EmptyQueues')
 @view_config(name='empty_queues')
 @view_defaults(route_name='objects.generic.traversal',
-			   renderer='rest',
-			   request_method='POST',
-			   context=SOLRPathAdapter,
-			   permission=nauth.ACT_NTI_ADMIN)
+               renderer='rest',
+               request_method='POST',
+               context=SOLRPathAdapter,
+               permission=nauth.ACT_NTI_ADMIN)
 class EmptyQueuesView(AbstractAuthenticatedView):
 
-	def __call__(self):
-		for name in QUEUE_NAMES:
-			queue = get_job_queue(name)
-			queue.empty()
-		return hexc.HTTPNoContent()
+    def __call__(self):
+        for name in QUEUE_NAMES:
+            queue = get_job_queue(name)
+            queue.empty()
+        return hexc.HTTPNoContent()
