@@ -136,9 +136,9 @@ def process_course_discussions(obj, index=True):
         operation = catalog.add if index else catalog.remove
         operation(forum, commit=False)
         for topic in list(forum.values()):
-            catalog = ICoreCatalog(forum)
+            catalog = ICoreCatalog(topic.headline)
             operation = catalog.add if index else catalog.remove
-            operation(topic, commit=False)
+            operation(topic.headline, commit=False) # posts
             for comment in list(topic.values()):
                 catalog = ICoreCatalog(comment)
                 operation = catalog.add if index else catalog.remove
