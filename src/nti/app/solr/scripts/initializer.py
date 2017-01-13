@@ -216,8 +216,7 @@ class Processor(object):
                                 help="Commit after each batch")
 
         site_group = arg_parser.add_mutually_exclusive_group()
-        site_group.add_argument('-s', '--site', help="request site",
-                                action='store_true', dest='site')
+        site_group.add_argument('-s', '--site', help="request site", dest='site')
         site_group.add_argument('--all-sites', dest='all_sites',
                                 help="Index all sites", action='store_true')
 
