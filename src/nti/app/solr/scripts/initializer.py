@@ -148,7 +148,10 @@ class _SolrInitializer(object):
         return (False, count)
 
     def init_solr(self, all_users=False, site_users=True, courses=True, packages=True):
-        our_site = get_host_site(self.site_name)
+        if self.site_name == getSite().__name__: # global site
+            our_site = getSite()
+        else:
+            our_site = get_host_site(self.site_name)
         with current_site(our_site):
             count = 0
             intids = component.getUtility(IIntIds)
