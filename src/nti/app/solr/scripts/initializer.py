@@ -21,6 +21,7 @@ import zope.exceptions
 
 from zope import component
 
+from zope.component.hooks import getSite
 from zope.component.hooks import site as current_site
 
 from zope.event import notify
@@ -258,7 +259,7 @@ class Processor(object):
         elif getattr(args, 'all_sites', False):
             sites = get_all_host_sites()
         else:
-            sites = ()
+            sites = (getSite(),)
 
         batch_size = DEFAULT_COMMIT_BATCH_SIZE
         if args.batch_size:
