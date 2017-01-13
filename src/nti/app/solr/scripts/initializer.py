@@ -55,10 +55,10 @@ DEFAULT_COMMIT_BATCH_SIZE = 2000
 class _SolrInitializer(object):
 
     def __init__(self, batch_size, site_name, seen_intids, seen_ntiids):
+        self.site_name = site_name
         self.batch_size = batch_size
         self.seen_intids = seen_intids
         self.seen_ntiids = seen_ntiids
-        self.site_name = site_name
 
     def process_obj(self, obj, intids):
         logger.info('[%s] Processing (%s) (%s) (%s)',
@@ -74,15 +74,15 @@ class _SolrInitializer(object):
         obj_id = intids.queryId(obj)
         obj_ntiid = getattr(obj, 'ntiid', None)
 
-        if 		(obj_id is not None and obj_id in self.seen_intids) \
-                or (obj_ntiid is not None and obj_ntiid in self.seen_ntiids):
+        if 	    (obj_id is not None and obj_id in self.seen_intids) \
+             or (obj_ntiid is not None and obj_ntiid in self.seen_ntiids):
             return False
 
         if obj_id is not None:
             self.seen_intids.add(obj_id)
-        if obj_ntiid is not None:
+        if obj_ntiid:
             self.seen_ntiids.add(obj_ntiid)
-        if obj_ntiid is None and obj_id is None:
+        if not obj_ntiid and obj_id is None:
             logger.warn('Object without ntiid or intid (%s)', obj)
             return False
         return True
@@ -152,23 +152,27 @@ class _SolrInitializer(object):
             count = 0
             intids = component.getUtility(IIntIds)
             if courses:
-                must_break, count = self._init_iter(
-                    self.course_iter(), intids, count)
+                must_break, count = self._init_iter(self.course_iter(), 
+                                                    intids, 
+                                                    count)
                 if must_break:
                     return count
             if packages:
-                must_break, count = self._init_iter(
-                    self.package_iter(), intids, count)
+                must_break, count = self._init_iter(self.package_iter(), 
+                                                    intids, 
+                                                    count)
                 if must_break:
                     return count
             if site_users:
-                must_break, count = self._init_iter(
-                    self.user_iter(), intids, count)
+                must_break, count = self._init_iter(self.user_iter(), 
+                                                    intids, 
+                                                    count)
                 if must_break:
                     return count
             elif all_users:
-                must_break, count = self._init_iter(
-                    self.all_users_iter(), intids, count)
+                must_break, count = self._init_iter(self.all_users_iter(),
+                                                    intids,
+                                                    count)
                 if must_break:
                     return count
             return count
@@ -179,8 +183,11 @@ class _SolrInitializer(object):
         logger.info('[%s] Initializing solr intializer (batch_size=%s)',
                     self.site_name, self.batch_size)
 
-        runner = partial(self.init_solr, all_users=all_users, site_users=site_users,
-                         courses=courses, packages=packages)
+        runner = partial(self.init_solr, 
+                         all_users=all_users, 
+                         site_users=site_users,
+                         courses=courses,
+                         packages=packages)
         transaction_runner = component.getUtility(IDataserverTransactionRunner)
         while True:
             try:
@@ -208,6 +215,12 @@ class Processor(object):
         arg_parser.add_argument('-b', '--batch_size', dest='batch_size',
                                 help="Commit after each batch")
 
+        site_group = arg_parser.add_mutually_exclusive_group()
+        site_group.add_argument('-s', '--site', help="request site",
+                                action='store_true', dest='site')
+        site_group.add_argument('--all-sites', dest='all_sites',
+                                help="Index all sites", action='store_true')
+
         arg_parser.add_argument('-s', '--site', 
 							 	dest='site', help="request SITE")
 
@@ -223,7 +236,7 @@ class Processor(object):
         site_group = arg_parser.add_mutually_exclusive_group()
         site_group.add_argument('-u', '--users', help="Index site users",
                                 action='store_true', dest='site_users')
-        site_group.add_argument('-a', '--all', dest='all_users',
+        site_group.add_argument('--all-users', dest='all_users',
                                 help="Index all users", action='store_true')
         return arg_parser
 
@@ -246,6 +259,8 @@ class Processor(object):
         site_name = getattr(args, 'site', None)
         if site_name:
             sites = (get_host_site(site_name),)
+        elif getattr(args, 'all_sites', False):
+            sites = get_all_host_sites()
         else:
             sites = ()
 
@@ -261,7 +276,6 @@ class Processor(object):
         seen_ntiids = set()
         ds = component.getUtility(IDataserver)
         with current_site(ds.dataserver_folder):
-            sites = get_all_host_sites() if sites is None else sites
             for site in sites or ():
                 solr_initializer = _SolrInitializer(batch_size,
                                                     site.__name__,
