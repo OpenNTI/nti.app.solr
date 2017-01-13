@@ -93,8 +93,8 @@ class _SolrInitializer(object):
         if community_username:
             site_community = Community.get_community(community_username)
             if site_community is not None:
-                logger.warn(
-                    "[%s] Using community %s", self.site_name, community_username)
+                logger.warn("[%s] Using community %s", 
+                            self.site_name, community_username)
                 try:
                     return site_community.iter_members()
                 except AttributeError:
@@ -220,9 +220,6 @@ class Processor(object):
                                 action='store_true', dest='site')
         site_group.add_argument('--all-sites', dest='all_sites',
                                 help="Index all sites", action='store_true')
-
-        arg_parser.add_argument('-s', '--site', 
-							 	dest='site', help="request SITE")
 
         arg_parser.add_argument('-v', '--verbose', help="Be verbose",
                                 action='store_true', dest='verbose')
