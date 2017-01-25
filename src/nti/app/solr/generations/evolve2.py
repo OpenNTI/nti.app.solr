@@ -14,13 +14,17 @@ generation = 2
 from zope import component
 from zope import interface
 
-from zope.component.hooks import setHooks
+from zope.component.hooks import setHooks, getSite
 from zope.component.hooks import site as current_site
 
 from zope.event import notify
 
+from nti.contenttypes.courses.utils import get_courses_for_packages
+
 from nti.dataserver.interfaces import IDataserver
 from nti.dataserver.interfaces import IOIDResolver
+
+from nti.site.hostpolicy import get_all_host_sites
 
 from nti.solr.interfaces import IndexObjectEvent
 
@@ -38,19 +42,35 @@ class MockDataserver(object):
             return resolver.get_object_by_oid(oid, ignore_creator=ignore_creator)
         return None
 
-
-def _reindex_legacy_content():
+def _sync_library():
     try:
+        from nti.contentlibrary.interfaces import IContentPackageLibrary
+        library = component.queryUtility(IContentPackageLibrary)
+        if library is not None:
+            library.syncContentPackages()
+    except ImportError:
+        pass
+
+def _reindex_legacy_content(seen):
+    try:
+        sites = (getSite().__name__,)
         from nti.contentlibrary.interfaces import IGlobalContentPackage
         from nti.contentlibrary.interfaces import IContentPackageLibrary
         library = component.queryUtility(IContentPackageLibrary)
-        if library is None:
-            return
-        else:
-            library.syncContentPackages()
-            for package in library.contentPackages or ():
-                if IGlobalContentPackage.providedBy(package):
-                    notify(IndexObjectEvent(package))
+        if library is not None:
+            for context in library.contentPackages or ():
+                ntiid = context.ntiid
+                if ntiid in seen:
+                    continue
+                seen.add(ntiid)
+                # global content
+                if IGlobalContentPackage.providedBy(context):
+                    notify(IndexObjectEvent(context))
+                else: # package w/o course references
+                    courses = get_courses_for_packages(sites=sites, 
+                                                       packages=(ntiid,))
+                    if not courses:
+                        notify(IndexObjectEvent(context))
     except ImportError:
         pass
 
@@ -70,7 +90,13 @@ def do_evolve(context, generation=generation):
         assert  component.getSiteManager() == ds_folder.getSiteManager(), \
                 "Hooks not installed?"
 
-        _reindex_legacy_content()
+        # global site
+        seen = set()
+        _sync_library()
+        _reindex_legacy_content(seen)
+        for site in get_all_host_sites():
+            with current_site(site):
+                _reindex_legacy_content(seen)
 
     component.getGlobalSiteManager().unregisterUtility(mock_ds, IDataserver)
     logger.info('SOLR Evolution %s done', generation)
