@@ -33,8 +33,7 @@ class MockDataserver(object):
     def get_by_oid(self, oid, ignore_creator=False):
         resolver = component.queryUtility(IOIDResolver)
         if resolver is None:
-            logger.warn(
-                "Using dataserver without a proper ISiteManager configuration.")
+            logger.warn("Using dataserver without a proper ISiteManager.")
         else:
             return resolver.get_object_by_oid(oid, ignore_creator=ignore_creator)
         return None
@@ -49,7 +48,7 @@ def _reindex_legacy_content():
             return
         else:
             library.syncContentPackages()
-            for package in library.syncContentPackages:
+            for package in library.contentPackages or ():
                 if IGlobalContentPackage.providedBy(package):
                     notify(IndexObjectEvent(package))
     except ImportError:

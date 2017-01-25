@@ -1,7 +1,5 @@
 #!/usr/bin/env python
 """
-zope.generations installer for nti.app.products.ou
-
 .. $Id$
 """
 
@@ -10,7 +8,7 @@ __docformat__ = "restructuredtext en"
 
 logger = __import__('logging').getLogger(__name__)
 
-generation = 1
+generation = 2
 
 from zope import interface
 
