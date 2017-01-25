@@ -53,7 +53,7 @@ def _sync_library():
 
 def _reindex_legacy_content(seen):
     try:
-        sites = (getSite().__name__,)
+        sites = getSite().__name__ or u''
         from nti.contentlibrary.interfaces import IGlobalContentPackage
         from nti.contentlibrary.interfaces import IContentPackageLibrary
         library = component.queryUtility(IContentPackageLibrary)
