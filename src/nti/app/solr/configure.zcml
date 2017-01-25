@@ -10,6 +10,10 @@
 
 	<include package="nti.solr" />
 	
+	<utility factory=".generations.install.SOLRSchemaManager"
+			 name="nti.dataserver-app-solr"
+			 provides="zope.generations.interfaces.IInstallableSchemaManager"/>
+			 
 	<adapter name="solr"
 			 for="nti.dataserver.interfaces.IDataserverFolder pyramid.interfaces.IRequest"
 			 factory=".views.SOLRPathAdapter"
