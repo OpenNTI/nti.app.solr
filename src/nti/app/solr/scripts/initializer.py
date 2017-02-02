@@ -75,7 +75,7 @@ class _SolrInitializer(object):
         obj_id = intids.queryId(obj)
         obj_ntiid = getattr(obj, 'ntiid', None)
 
-        if 	    (obj_id is not None and obj_id in self.seen_intids) \
+        if      (obj_id is not None and obj_id in self.seen_intids) \
              or (obj_ntiid is not None and obj_ntiid in self.seen_ntiids):
             return False
 
