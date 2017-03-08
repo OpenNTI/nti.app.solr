@@ -14,7 +14,8 @@ generation = 2
 from zope import component
 from zope import interface
 
-from zope.component.hooks import setHooks, getSite
+from zope.component.hooks import getSite
+from zope.component.hooks import setHooks
 from zope.component.hooks import site as current_site
 
 from zope.event import notify
@@ -42,6 +43,7 @@ class MockDataserver(object):
             return resolver.get_object_by_oid(oid, ignore_creator=ignore_creator)
         return None
 
+
 def _sync_library():
     try:
         from nti.contentlibrary.interfaces import IContentPackageLibrary
@@ -50,6 +52,7 @@ def _sync_library():
             library.syncContentPackages()
     except ImportError:
         pass
+
 
 def _reindex_legacy_content(seen):
     try:
@@ -66,8 +69,8 @@ def _reindex_legacy_content(seen):
                 # global content
                 if IGlobalContentPackage.providedBy(context):
                     notify(IndexObjectEvent(context))
-                else: # package w/o course references
-                    courses = get_courses_for_packages(sites=sites, 
+                else:  # package w/o course references
+                    courses = get_courses_for_packages(sites=sites,
                                                        packages=(ntiid,))
                     if not courses:
                         notify(IndexObjectEvent(context))

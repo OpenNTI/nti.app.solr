@@ -75,8 +75,8 @@ class _SolrInitializer(object):
         obj_id = intids.queryId(obj)
         obj_ntiid = getattr(obj, 'ntiid', None)
 
-        if      (obj_id is not None and obj_id in self.seen_intids) \
-             or (obj_ntiid is not None and obj_ntiid in self.seen_ntiids):
+        if     (obj_id is not None and obj_id in self.seen_intids) \
+            or (obj_ntiid is not None and obj_ntiid in self.seen_ntiids):
             return False
 
         if obj_id is not None:
@@ -293,8 +293,8 @@ class Processor(object):
 
         env_dir = os.getenv('DATASERVER_DIR')
         if not env_dir or not os.path.exists(env_dir) and not os.path.isdir(env_dir):
-            raise ValueError(
-                "Invalid dataserver environment root directory", env_dir)
+            raise ValueError("Invalid dataserver environment root directory",
+                              env_dir)
 
         conf_packages = ('nti.app.solr', 'nti.appserver', 'nti.dataserver',)
         context = create_context(env_dir, with_library=True, plugins=True)
