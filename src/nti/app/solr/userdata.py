@@ -4,7 +4,7 @@
 .. $Id$
 """
 
-from __future__ import print_function, unicode_literals, absolute_import, division
+from __future__ import print_function, absolute_import, division
 __docformat__ = "restructuredtext en"
 
 logger = __import__('logging').getLogger(__name__)
@@ -16,10 +16,9 @@ from zope.intid.interfaces import IIntIds
 from nti.dataserver.interfaces import IUser
 from nti.dataserver.interfaces import IUserGeneratedData
 
-from nti.dataserver.metadata_index import IX_CREATOR
-from nti.dataserver.metadata_index import IX_SHAREDWITH
-
-from nti.metadata import dataserver_metadata_catalog
+from nti.dataserver.metadata.index import IX_CREATOR
+from nti.dataserver.metadata.index import IX_SHAREDWITH
+from nti.dataserver.metadata.index import get_metadata_catalog
 
 from nti.solr import USERDATA_QUEUE
 
@@ -32,8 +31,8 @@ from nti.solr.interfaces import IIndexObjectEvent
 
 def all_user_generated_data(users=(), sharedWith=False):
     seen = set()
+    catalog = get_metadata_catalog()
     intids = component.getUtility(IIntIds)
-    catalog = dataserver_metadata_catalog()
     usernames = {getattr(user, 'username', user).lower()
                  for user in users or ()}
     if usernames:
@@ -80,4 +79,4 @@ def unindex_userdata(source, site=None, *args, **kwargs):
 @component.adapter(IUser, IIndexObjectEvent)
 def _index_user(obj, event):
     add_to_queue(USERDATA_QUEUE, index_userdata, obj=obj,
-                 jid='userdata_indexing')
+                 jid=u'userdata_indexing')
