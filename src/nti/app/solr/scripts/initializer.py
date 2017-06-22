@@ -4,7 +4,7 @@
 .. $Id$
 """
 
-from __future__ import print_function, unicode_literals, absolute_import, division
+from __future__ import print_function, absolute_import, division
 __docformat__ = "restructuredtext en"
 
 logger = __import__('logging').getLogger(__name__)
@@ -75,7 +75,7 @@ class _SolrInitializer(object):
         obj_id = intids.queryId(obj)
         obj_ntiid = getattr(obj, 'ntiid', None)
 
-        if     (obj_id is not None and obj_id in self.seen_intids) \
+        if (   obj_id is not None and obj_id in self.seen_intids) \
             or (obj_ntiid is not None and obj_ntiid in self.seen_ntiids):
             return False
 
@@ -94,7 +94,7 @@ class _SolrInitializer(object):
         if community_username:
             site_community = Community.get_community(community_username)
             if site_community is not None:
-                logger.warn("[%s] Using community %s", 
+                logger.warn("[%s] Using community %s",
                             self.site_name, community_username)
                 try:
                     return site_community.iter_members()
@@ -148,7 +148,7 @@ class _SolrInitializer(object):
         return (False, count)
 
     def init_solr(self, all_users=False, site_users=True, courses=True, packages=True):
-        if self.site_name == getSite().__name__: # global site
+        if self.site_name == getSite().__name__:  # global site
             our_site = getSite()
         else:
             our_site = get_host_site(self.site_name)
@@ -156,20 +156,20 @@ class _SolrInitializer(object):
             count = 0
             intids = component.getUtility(IIntIds)
             if courses:
-                must_break, count = self._init_iter(self.course_iter(), 
-                                                    intids, 
+                must_break, count = self._init_iter(self.course_iter(),
+                                                    intids,
                                                     count)
                 if must_break:
                     return count
             if packages:
-                must_break, count = self._init_iter(self.package_iter(), 
-                                                    intids, 
+                must_break, count = self._init_iter(self.package_iter(),
+                                                    intids,
                                                     count)
                 if must_break:
                     return count
             if site_users:
-                must_break, count = self._init_iter(self.user_iter(), 
-                                                    intids, 
+                must_break, count = self._init_iter(self.user_iter(),
+                                                    intids,
                                                     count)
                 if must_break:
                     return count
@@ -187,8 +187,8 @@ class _SolrInitializer(object):
         logger.info('[%s] Initializing solr intializer (batch_size=%s)',
                     self.site_name, self.batch_size)
 
-        runner = partial(self.init_solr, 
-                         all_users=all_users, 
+        runner = partial(self.init_solr,
+                         all_users=all_users,
                          site_users=site_users,
                          courses=courses,
                          packages=packages)
@@ -220,7 +220,8 @@ class Processor(object):
                                 help="Commit after each batch")
 
         site_group = arg_parser.add_mutually_exclusive_group()
-        site_group.add_argument('-s', '--site', help="request site", dest='site')
+        site_group.add_argument('-s', '--site', help="request site", 
+                                dest='site')
         site_group.add_argument('--all-sites', dest='all_sites',
                                 help="Index all sites", action='store_true')
 
@@ -294,7 +295,7 @@ class Processor(object):
         env_dir = os.getenv('DATASERVER_DIR')
         if not env_dir or not os.path.exists(env_dir) and not os.path.isdir(env_dir):
             raise ValueError("Invalid dataserver environment root directory",
-                              env_dir)
+                             env_dir)
 
         conf_packages = ('nti.app.solr', 'nti.appserver', 'nti.dataserver',)
         context = create_context(env_dir, with_library=True, plugins=True)
@@ -309,6 +310,7 @@ class Processor(object):
 
 def main():
     return Processor()()
+
 
 if __name__ == '__main__':
     main()

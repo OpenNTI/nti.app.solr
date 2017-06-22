@@ -4,7 +4,7 @@
 .. $Id$
 """
 
-from __future__ import print_function, unicode_literals, absolute_import, division
+from __future__ import print_function, absolute_import, division
 __docformat__ = "restructuredtext en"
 
 logger = __import__('logging').getLogger(__name__)
@@ -56,7 +56,7 @@ def _sync_library():
 
 def _reindex_legacy_content(seen):
     try:
-        sites = getSite().__name__ or u''
+        sites = getSite().__name__ or ''
         from nti.contentlibrary.interfaces import IGlobalContentPackage
         from nti.contentlibrary.interfaces import IContentPackageLibrary
         library = component.queryUtility(IContentPackageLibrary)

@@ -4,7 +4,7 @@
 .. $Id$
 """
 
-from __future__ import print_function, unicode_literals, absolute_import, division
+from __future__ import print_function, absolute_import, division
 __docformat__ = "restructuredtext en"
 
 logger = __import__('logging').getLogger(__name__)
@@ -17,6 +17,8 @@ from pyramid.view import view_config
 from pyramid.view import view_defaults
 
 from nti.app.base.abstract_views import AbstractAuthenticatedView
+
+from nti.app.externalization.error import raise_json_error
 
 from nti.app.solr.views import SOLRPathAdapter
 
@@ -55,7 +57,12 @@ class SOLRIndexObjectView(AbstractAuthenticatedView):
         request = self.request
         uid = request.subpath[0] if request.subpath else None
         if uid is None:
-            raise hexc.HTTPUnprocessableEntity("Must specify an object id")
+            raise_json_error(self.request,
+                             hexc.HTTPUnprocessableEntity,
+                             {
+                                 'message': u"Must specify an object id."
+                             },
+                             None)
         context = object_finder(uid)
         if context is None:
             raise hexc.HTTPNotFound()
@@ -79,7 +86,12 @@ class UnindexSOLRObjectView(AbstractAuthenticatedView):
         request = self.request
         uid = request.subpath[0] if request.subpath else None
         if uid is None:
-            raise hexc.HTTPUnprocessableEntity("Must specify an object id")
+            raise_json_error(self.request,
+                             hexc.HTTPUnprocessableEntity,
+                             {
+                                 'message': u"Must specify an object id."
+                             },
+                             None)
         context = object_finder(uid)
         if context is None:
             raise hexc.HTTPNotFound()
