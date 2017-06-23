@@ -9,6 +9,10 @@ __docformat__ = "restructuredtext en"
 
 logger = __import__('logging').getLogger(__name__)
 
+import six
+
+from requests.structures import CaseInsensitiveDict
+
 from zope.event import notify
 
 from pyramid import httpexceptions as hexc
@@ -19,6 +23,11 @@ from pyramid.view import view_defaults
 from nti.app.base.abstract_views import AbstractAuthenticatedView
 
 from nti.app.externalization.error import raise_json_error
+
+from nti.app.externalization.view_mixins import ModeledContentUploadRequestUtilsMixin
+
+from nti.app.solr.views import all_usernames
+from nti.app.solr.views import username_search
 
 from nti.app.solr.views import SOLRPathAdapter
 
@@ -33,12 +42,19 @@ from nti.dataserver.interfaces import ICommunity
 from nti.dataserver.interfaces import IFriendsList
 from nti.dataserver.interfaces import IUserGeneratedData
 
+from nti.dataserver.users.users import User
+
 from nti.externalization.proxy import removeAllProxies
 
 from nti.solr.interfaces import IndexObjectEvent
 from nti.solr.interfaces import UnindexObjectEvent
 
 from nti.solr.utils import object_finder
+
+
+def solr_notify(context):
+    context = removeAllProxies(context)
+    notify(IndexObjectEvent(context))
 
 
 @view_config(name='index')
@@ -50,8 +66,7 @@ from nti.solr.utils import object_finder
 class SOLRIndexObjectView(AbstractAuthenticatedView):
 
     def _notify(self, context):
-        context = removeAllProxies(context)
-        notify(IndexObjectEvent(context))
+        solr_notify(context)
 
     def __call__(self):
         request = self.request
@@ -162,4 +177,38 @@ class UnindexMembershipObjectView(UnindexSOLRObjectView):
         self._notify(self.context)
         for user in self.context:
             self._notify(user)
+        return hexc.HTTPNoContent()
+
+
+@view_config(name='IndexUsers')
+@view_config(name='index_users')
+@view_defaults(route_name='objects.generic.traversal',
+               renderer='rest',
+               context=SOLRPathAdapter,
+               request_method='POST',
+               permission=nauth.ACT_NTI_ADMIN)
+class IndexUsersViews(SOLRIndexObjectView,
+                      ModeledContentUploadRequestUtilsMixin):
+
+    def readInput(self, value=None):
+        if self.request.body:
+            values = super(IndexUsersViews, self).readInput(value)
+        else:
+            values = {}
+        return CaseInsensitiveDict(values)
+
+    def __call__(self):
+        values = self.readInput()
+        term = values.get('term') or values.get('search')
+        usernames = values.get('usernames') or values.get('username')
+        if term:
+            usernames = username_search(term)
+        elif isinstance(usernames, six.string_types):
+            usernames = set(usernames.split(","))
+        else:
+            usernames = all_usernames()
+        for name in usernames or ():
+            user = User.get_user(name)
+            if IUser.providedBy(user):
+                self._notify(user)
         return hexc.HTTPNoContent()
