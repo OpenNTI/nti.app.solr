@@ -44,7 +44,17 @@ class MockDataserver(object):
         return None
 
 
-def renderable_mimeTypes():
+def _sync_library():
+    try:
+        from nti.contentlibrary.interfaces import IContentPackageLibrary
+        library = component.queryUtility(IContentPackageLibrary)
+        if library is not None:
+            library.syncContentPackages()
+    except ImportError:
+        pass
+
+
+def _renderable_mimeTypes():
     try:
         from nti.contentlibrary import RENDERABLE_CONTENT_MIME_TYPES
         return RENDERABLE_CONTENT_MIME_TYPES
@@ -86,13 +96,14 @@ def do_evolve(context, generation=generation):
         assert component.getSiteManager() == ds_folder.getSiteManager(), \
                "Hooks not installed?"
 
+        seen = set()
         lsm = ds_folder.getSiteManager()
         intids = lsm.getUtility(IIntIds)
-
-        seen = set()
+        # sync library
+        _sync_library()
         # clear all renderable content units
+        mimeTypes = _renderable_mimeTypes()
         catalog = component.queryUtility(ICoreCatalog, name="contentunits")
-        mimeTypes = renderable_mimeTypes()
         if catalog is not None and mimeTypes:
             catalog.clear(commit=False, mimeTypes=mimeTypes)
             for site in get_all_host_sites():
