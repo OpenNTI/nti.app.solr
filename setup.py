@@ -7,6 +7,7 @@ entry_points = {
         'target = nti.app',
     ],
     "console_scripts": [
+        "nti_solr_indexer = nti.app.solr.scripts.constructor:main",
         "nti_solr_initializer = nti.app.solr.scripts.initializer:main",
     ],
 }
@@ -41,6 +42,7 @@ setup(
     namespace_packages=['nti', 'nti.app'],
     install_requires=[
         'setuptools',
+        'nti.async',
         'nti.solr',
     ],
     entry_points=entry_points,
