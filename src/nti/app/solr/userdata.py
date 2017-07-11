@@ -16,8 +16,11 @@ from zope.intid.interfaces import IIntIds
 from nti.dataserver.interfaces import IUser
 from nti.dataserver.interfaces import IUserGeneratedData
 
+from nti.dataserver.metadata.index import IX_TOPICS
 from nti.dataserver.metadata.index import IX_CREATOR
 from nti.dataserver.metadata.index import IX_SHAREDWITH
+from nti.dataserver.metadata.index import TP_USER_GENERATED_DATA
+
 from nti.dataserver.metadata.index import get_metadata_catalog
 
 from nti.solr import USERDATA_QUEUE
@@ -33,22 +36,29 @@ def all_user_generated_data(users=(), sharedWith=False):
     seen = set()
     catalog = get_metadata_catalog()
     intids = component.getUtility(IIntIds)
+
+    # get user data objects
     usernames = {getattr(user, 'username', user).lower()
                  for user in users or ()}
     if usernames:
-        uids = catalog[IX_CREATOR].apply({'any_of': usernames})
+        user_ids = catalog[IX_CREATOR].apply({'any_of': usernames})
     else:
-        uids = catalog[IX_CREATOR].ids()
+        user_ids = intids.family.IF.LFSet(catalog[IX_CREATOR].ids())
 
-    for uid in uids or ():
+    # filter with ugds
+    ugd_ids = catalog[IX_TOPICS][TP_USER_GENERATED_DATA].getExtent()
+    toplevel_intids = ugd_ids.intersection(user_ids) if user_ids else None
+    
+    for uid in toplevel_intids or ():
         obj = intids.queryObject(uid)
         if IUserGeneratedData.providedBy(obj) and uid not in seen:
             yield uid, obj
             seen.add(uid)
 
     if usernames and sharedWith:
-        intids_sharedWith = catalog[IX_SHAREDWITH].apply({'any_of': usernames})
-        for uid in intids_sharedWith or ():
+        sw_ids = catalog[IX_SHAREDWITH].apply({'any_of': usernames})
+        toplevel_intids = ugd_ids.intersection(sw_ids) if sw_ids else None
+        for uid in toplevel_intids or ():
             obj = intids.queryObject(uid)
             if IUserGeneratedData.providedBy(obj) and uid not in seen:
                 yield uid, obj
