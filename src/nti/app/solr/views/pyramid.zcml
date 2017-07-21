@@ -17,4 +17,8 @@
 		<pyramid:scan package=".content_views" />
 	</configure>
 
+	<configure zcml:condition="installed nti.assessment">
+		<pyramid:scan package=".evaluation_views" />
+	</configure>
+
 </configure>
