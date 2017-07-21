@@ -43,7 +43,7 @@ def process_content_package_evaluations(obj, index=True):
         operation(a, commit=False)  # wait for server to commit
 
 
-def index_content_package_evaluations(source, site=None, *args, **kwargs):
+def index_content_package_evaluations(source, site=None, *unused_args, **unused_kwargs):
     job_site = get_job_site(site)
     with current_site(job_site):
         obj = finder(source)
@@ -54,7 +54,7 @@ def index_content_package_evaluations(source, site=None, *args, **kwargs):
             logger.info("Content package %s evaluations indexing completed", ntiid)
 
 
-def unindex_content_package_evaluations(source, site=None, *args, **kwargs):
+def unindex_content_package_evaluations(source, site=None, *unused_args, **unused_kwargs):
     job_site = get_job_site(site)
     with current_site(job_site):
         obj = finder(source)
@@ -63,12 +63,12 @@ def unindex_content_package_evaluations(source, site=None, *args, **kwargs):
 
 
 @component.adapter(IContentPackage, IIndexObjectEvent)
-def _index_contentpackage(obj, event):
+def _index_contentpackage(obj, _):
     add_to_queue(EVALUATIONS_QUEUE,
                  index_content_package_evaluations, obj, jid='evaluations_added')
 
 
 @component.adapter(IContentPackage, IUnindexObjectEvent)
-def _unindex_contentpackage(obj, event):
+def _unindex_contentpackage(obj, _):
     add_to_queue(EVALUATIONS_QUEUE, unindex_content_package_evaluations, obj,
                  jid='evaluations_removed')

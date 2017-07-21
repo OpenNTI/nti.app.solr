@@ -48,7 +48,7 @@ def process_course_assets(obj, index=True):
                 process_asset(a, index=index, commit=False)
 
 
-def index_course_assets(source, site=None, *args, **kwargs):
+def index_course_assets(source, site=None, *unused_args, **unused_kwargs):
     job_site = get_job_site(site)
     with current_site(job_site):
         obj = ICourseInstance(finder(source), None)
@@ -60,7 +60,7 @@ def index_course_assets(source, site=None, *args, **kwargs):
             logger.info("Course %s assets indexing completed", ntiid)
 
 
-def unindex_course_assets(source, site=None, *args, **kwargs):
+def unindex_course_assets(source, site=None, *unused_args, **unused_kwargs):
     job_site = get_job_site(site)
     with current_site(job_site):
         obj = ICourseInstance(finder(source), None)
@@ -80,7 +80,7 @@ def process_course_assignment_feedback(obj, index=True):
                     operation(feedback, commit=False)
 
 
-def index_course_assignment_feedback(source, site=None, *args, **kwargs):
+def index_course_assignment_feedback(source, site=None, *unused_args, **unused_kwargs):
     job_site = get_job_site(site)
     with current_site(job_site):
         obj = ICourseInstance(finder(source), None)
@@ -92,7 +92,7 @@ def index_course_assignment_feedback(source, site=None, *args, **kwargs):
             logger.info("Course %s assignment feedback indexing completed", ntiid)
 
 
-def unindex_course_assignment_feedback(source, site=None, *args, **kwargs):
+def unindex_course_assignment_feedback(source, site=None, *unused_args, **unused_kwargs):
     job_site = get_job_site(site)
     with current_site(job_site):
         obj = ICourseInstance(finder(source), None)
@@ -109,7 +109,7 @@ def process_course_evaluations(obj, index=True):
             operation(item, commit=False)  # wait for server to commit
 
 
-def index_course_evaluations(source, site=None, *args, **kwargs):
+def index_course_evaluations(source, site=None, *unused_args, **unused_kwargs):
     job_site = get_job_site(site)
     with current_site(job_site):
         obj = ICourseInstance(finder(source), None)
@@ -121,7 +121,7 @@ def index_course_evaluations(source, site=None, *args, **kwargs):
             logger.info("Course %s evaluations indexing completed", ntiid)
 
 
-def unindex_course_evaluations(source, site=None, *args, **kwargs):
+def unindex_course_evaluations(source, site=None, *unused_args, **unused_kwargs):
     job_site = get_job_site(site)
     with current_site(job_site):
         obj = ICourseInstance(finder(source), None)
@@ -145,7 +145,7 @@ def process_course_discussions(obj, index=True):
                 operation(comment, commit=False)  # wait for server to commit
 
 
-def index_course_discussions(source, site=None, *args, **kwargs):
+def index_course_discussions(source, site=None, *unused_args, **unused_kwargs):
     job_site = get_job_site(site)
     with current_site(job_site):
         obj = ICourseInstance(finder(source), None)
@@ -157,7 +157,7 @@ def index_course_discussions(source, site=None, *args, **kwargs):
             logger.info("Course %s discussions indexing started", ntiid)
 
 
-def unindex_course_discussions(source, site=None, *args, **kwargs):
+def unindex_course_discussions(source, site=None, *unused_args, **unused_kwargs):
     job_site = get_job_site(site)
     with current_site(job_site):
         obj = ICourseInstance(finder(source), None)
@@ -166,7 +166,7 @@ def unindex_course_discussions(source, site=None, *args, **kwargs):
 
 
 @component.adapter(ICourseInstance, IIndexObjectEvent)
-def _index_course(obj, event=None):
+def _index_course(obj, _):
     add_to_queue(COURSES_QUEUE,
                  index_course_assets,
                  obj, 
@@ -189,7 +189,7 @@ def _index_course(obj, event=None):
 
 
 @component.adapter(ICourseInstance, ICourseInstanceImportedEvent)
-def _course_imported(obj, event):
+def _course_imported(obj, _):
     if not ICourseSubInstance.providedBy(obj):
         for course in get_course_hierarchy(obj):
             _index_course(course, None)
