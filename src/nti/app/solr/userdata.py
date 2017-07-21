@@ -72,7 +72,7 @@ def process_userdata(user, index=True):
         operation(obj, commit=False)  # wait for server to commit
 
 
-def index_userdata(source, site=None, *args, **kwargs):
+def index_userdata(source, unused_site=None, *unused_args, **unused_kwargs):
     obj = IUser(finder(source), None)
     if IUser.providedBy(obj):
         logger.info("Indexing data for user %s started", obj)
@@ -80,13 +80,13 @@ def index_userdata(source, site=None, *args, **kwargs):
         logger.info("Indexing data for user %s completed", obj)
 
 
-def unindex_userdata(source, site=None, *args, **kwargs):
+def unindex_userdata(source, unused_site=None, *unused_args, **unused_kwargs):
     obj = IUser(finder(source), None)
     if IUser.providedBy(obj):
         process_userdata(obj, index=False)
 
 
 @component.adapter(IUser, IIndexObjectEvent)
-def _index_user(obj, event):
+def _index_user(obj, _):
     add_to_queue(USERDATA_QUEUE, index_userdata, obj=obj,
                  jid=u'userdata_indexing')
