@@ -13,9 +13,6 @@ from zope import component
 
 from zope.component.hooks import site as current_site
 
-from nti.app.assessment.interfaces import ICourseEvaluations
-from nti.app.assessment.interfaces import IUsersCourseAssignmentHistories
-
 from nti.contenttypes.courses.interfaces import ICourseInstance
 from nti.contenttypes.courses.interfaces import ICourseSubInstance
 from nti.contenttypes.courses.interfaces import ICourseCatalogEntry
@@ -69,15 +66,19 @@ def unindex_course_assets(source, site=None, *unused_args, **unused_kwargs):
 
 
 def process_course_assignment_feedback(obj, index=True):
-    container = IUsersCourseAssignmentHistories(obj, None)
-    if container is not None:
-        for history in list(container.values()):
-            for item in list(history.values()):
-                for feedback in item.Feedback.Items:
-                    catalog = ICoreCatalog(feedback)
-                    operation = catalog.add if index else catalog.remove
-                    # wait for server to commit
-                    operation(feedback, commit=False)
+    try:
+        from nti.app.assessment.interfaces import IUsersCourseAssignmentHistories
+        container = IUsersCourseAssignmentHistories(obj, None)
+        if container is not None:
+            for history in list(container.values()):
+                for item in list(history.values()):
+                    for feedback in item.Feedback.Items:
+                        catalog = ICoreCatalog(feedback)
+                        operation = catalog.add if index else catalog.remove
+                        # wait for server to commit
+                        operation(feedback, commit=False)
+    except ImportError:
+        pass
 
 
 def index_course_assignment_feedback(source, site=None, *unused_args, **unused_kwargs):
@@ -101,12 +102,16 @@ def unindex_course_assignment_feedback(source, site=None, *unused_args, **unused
 
 
 def process_course_evaluations(obj, index=True):
-    container = ICourseEvaluations(obj, None)
-    if container is not None:
-        for item in list(container.values()):
-            catalog = ICoreCatalog(item)
-            operation = catalog.add if index else catalog.remove
-            operation(item, commit=False)  # wait for server to commit
+    try:
+        from nti.app.assessment.interfaces import IQEvaluations
+        container = IQEvaluations(obj, None)
+        if container is not None:
+            for item in list(container.values()):
+                catalog = ICoreCatalog(item)
+                operation = catalog.add if index else catalog.remove
+                operation(item, commit=False)  # wait for server to commit
+    except ImportError:
+        pass
 
 
 def index_course_evaluations(source, site=None, *unused_args, **unused_kwargs):
