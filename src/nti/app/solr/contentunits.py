@@ -9,6 +9,8 @@ __docformat__ = "restructuredtext en"
 
 logger = __import__('logging').getLogger(__name__)
 
+from itertools import chain
+
 from zope import component
 
 from zope.component.hooks import site as current_site
@@ -28,19 +30,37 @@ from nti.solr.interfaces import IIndexObjectEvent
 from nti.solr.interfaces import IUnindexObjectEvent
 
 
-def process_content_package_evaluations(obj, index=True):
-    collector = set()
+def _package_authored_evaluations(obj):
+    try:
+        from nti.app.assessment.interfaces import IQEvaluations
+        container = IQEvaluations(obj, None)
+        return container.values() if container else ()
+    except ImportError:
+        return ()
+
+
+def _package_native_evaluations(obj):
+    collector = list()
     def recur(unit):
         container = IQAssessmentItemContainer(unit, None)
         if container:
-            collector.update(container.values())
+            collector.extend(container.values())
         for child in unit.children or ():
             recur(child)
     recur(obj)
-    for a in collector:
-        catalog = ICoreCatalog(a)
+    return collector
+
+
+def process_content_package_evaluations(obj, index=True):
+    seen = set()
+    for item in chain(_package_native_evaluations(obj),
+                      _package_authored_evaluations(obj)):
+        if item.ntiid in seen:
+            continue
+        seen.add(item.ntiid)
+        catalog = ICoreCatalog(item)
         operation = catalog.add if index else catalog.remove
-        operation(a, commit=False)  # wait for server to commit
+        operation(item, commit=False)  # wait for server to commit
 
 
 def index_content_package_evaluations(source, site=None, *unused_args, **unused_kwargs):
