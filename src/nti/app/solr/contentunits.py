@@ -9,8 +9,6 @@ __docformat__ = "restructuredtext en"
 
 logger = __import__('logging').getLogger(__name__)
 
-from itertools import chain
-
 from zope import component
 
 from zope.component.hooks import site as current_site
@@ -18,6 +16,7 @@ from zope.component.hooks import site as current_site
 from nti.assessment.interfaces import IQAssessmentItemContainer
 
 from nti.contentlibrary.interfaces import IContentPackage
+from nti.contentlibrary.interfaces import IEditableContentPackage
 
 from nti.solr import EVALUATIONS_QUEUE
 
@@ -52,12 +51,11 @@ def _package_native_evaluations(obj):
 
 
 def process_content_package_evaluations(obj, index=True):
-    seen = set()
-    for item in chain(_package_native_evaluations(obj),
-                      _package_authored_evaluations(obj)):
-        if item.ntiid in seen:
-            continue
-        seen.add(item.ntiid)
+    if IEditableContentPackage.providedBy(obj):
+        items = _package_authored_evaluations(obj)
+    else:
+        items = _package_native_evaluations(obj)
+    for item in items:
         catalog = ICoreCatalog(item)
         operation = catalog.add if index else catalog.remove
         operation(item, commit=False)  # wait for server to commit
