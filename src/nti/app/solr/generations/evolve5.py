@@ -87,7 +87,6 @@ def do_evolve(context, generation=generation):
         intids = lsm.getUtility(IIntIds)
         # sync library
         _sync_library()
-        from IPython.terminal.debugger import set_trace;set_trace()
         # clear all evaluations
         catalog = component.queryUtility(ICoreCatalog, name="evaluations")
         if catalog is not None:
