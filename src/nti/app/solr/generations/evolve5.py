@@ -57,7 +57,7 @@ def _sync_library():
 def _process_site(seen, intids):
     try:
         from nti.assessment.interfaces import IQEvaluation
-        for item in component.getUtilitiesFor(IQEvaluation):
+        for _, item in component.getUtilitiesFor(IQEvaluation):
             doc_id = intids.queryId(item)
             if doc_id is None or doc_id in seen:
                 continue
@@ -87,6 +87,7 @@ def do_evolve(context, generation=generation):
         intids = lsm.getUtility(IIntIds)
         # sync library
         _sync_library()
+        from IPython.terminal.debugger import set_trace;set_trace()
         # clear all evaluations
         catalog = component.queryUtility(ICoreCatalog, name="evaluations")
         if catalog is not None:
