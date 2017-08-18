@@ -7,9 +7,6 @@ __docformat__ = "restructuredtext en"
 # disable: accessing protected members, too many methods
 # pylint: disable=W0212,R0904
 
-from hamcrest import is_not
-does_not = is_not
-
 import fudge
 
 from nti.app.testing.application_webtest import ApplicationLayerTest
@@ -17,7 +14,7 @@ from nti.app.testing.application_webtest import ApplicationLayerTest
 from nti.app.testing.decorators import WithSharedApplicationMockDS
 
 
-class TestAdminViews(ApplicationLayerTest):
+class TestGeneralViews(ApplicationLayerTest):
 
     @WithSharedApplicationMockDS(users=True, testapp=True)
     @fudge.patch('nti.app.solr.views.general_views.solr_notify')
