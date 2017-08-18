@@ -39,7 +39,7 @@ class Constructor(Processor):
     def extend_context(self, context):
         includePluginsDirective(context, PP_SOLR)
 
-    def create_context(self, env_dir, args=None):
+    def create_context(self, env_dir, unused_args=None):
         context = create_context(env_dir, with_library=True,
                                  plugins=False,
                                  slugs=True,

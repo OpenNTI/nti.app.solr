@@ -241,7 +241,7 @@ class Processor(object):
                                 help="Index all users", action='store_true')
         return arg_parser
 
-    def set_log_formatter(self, args):
+    def set_log_formatter(self, unused_args):
         ei = '%(asctime)s %(levelname)-5.5s [%(name)s][%(thread)d][%(threadName)s] %(message)s'
         formatter = zope.exceptions.log.Formatter(ei)
         logging.root.handlers[0].setFormatter(formatter)
@@ -288,7 +288,7 @@ class Processor(object):
                                  packages=args.packages)
         sys.exit()
 
-    def __call__(self, *args, **kwargs):
+    def __call__(self, *unused_args, **unused_kwargs):
         arg_parser = self.create_arg_parser()
         args = arg_parser.parse_args()
 
