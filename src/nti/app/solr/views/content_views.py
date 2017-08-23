@@ -84,3 +84,20 @@ class IndexLegacyContentPackagesView(IndexAllContentPackagesView):
 
     def predicate(self, context):
         return IGlobalContentPackage.providedBy(context)
+
+
+@view_config(name='UnindexLegacyContentPackages')
+@view_defaults(route_name='objects.generic.traversal',
+               renderer='rest',
+               request_method='POST',
+               context=SOLRPathAdapter,
+               permission=nauth.ACT_NTI_ADMIN)
+class UnindexLegacyContentPackagesView(UnindexSOLRObjectView):
+
+    def __call__(self):
+        library = component.queryUtility(IContentPackageLibrary)
+        if library is not None:
+            for package in library.contentPackages or ():
+                if IGlobalContentPackage.providedBy(package):
+                    self._notify(package)
+        return hexc.HTTPNoContent()
