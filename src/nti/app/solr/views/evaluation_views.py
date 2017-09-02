@@ -25,6 +25,8 @@ from nti.assessment.interfaces import IQEvaluation
 
 from nti.dataserver import authorization as nauth
 
+from nti.solr.interfaces import ICoreCatalog
+
 
 @view_config(context=IQEvaluation)
 @view_defaults(route_name='objects.generic.traversal',
@@ -63,4 +65,19 @@ class IndexAllEvaluationsView(SOLRIndexObjectView):
     def __call__(self):
         for _, obj in component.getUtilitiesFor(IQEvaluation):
             self._notify(obj)
+        return hexc.HTTPNoContent()
+
+
+@view_config(name='UnindexAllEvaluations')
+@view_defaults(route_name='objects.generic.traversal',
+               renderer='rest',
+               request_method='POST',
+               context=SOLRPathAdapter,
+               permission=nauth.ACT_NTI_ADMIN)
+class UnindexAllEvaluationsView(SOLRIndexObjectView):
+
+    def __call__(self):
+        catalog = component.queryUtility(ICoreCatalog, name="evaluations")
+        if catalog is not None:
+            catalog.clear(commit=True)
         return hexc.HTTPNoContent()
