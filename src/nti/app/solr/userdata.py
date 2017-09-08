@@ -89,4 +89,4 @@ def unindex_userdata(source, unused_site=None, *unused_args, **unused_kwargs):
 @component.adapter(IUser, IIndexObjectEvent)
 def _index_user(obj, _):
     add_to_queue(USERDATA_QUEUE, index_userdata, obj=obj,
-                 jid=u'userdata_indexing')
+                 jid='userdata_indexing')
