@@ -1,7 +1,6 @@
 import codecs
 from setuptools import setup, find_packages
 
-
 entry_points = {
     "z3c.autoinclude.plugin": [
         'target = nti.app',
@@ -11,6 +10,12 @@ entry_points = {
         "nti_solr_initializer = nti.app.solr.scripts.initializer:main",
     ],
 }
+
+TESTS_REQUIRE = [
+    'nti.app.testing',
+    'nti.testing',
+    'zope.testrunner',
+]
 
 
 def _read(fname):
@@ -26,8 +31,10 @@ setup(
     description="NTI SOLR App",
     long_description=(_read('README.rst') + '\n\n' + _read("CHANGES.rst")),
     license='Apache',
-    keywords='pyramid solr index',
+    keywords='pyramid search index',
     classifiers=[
+        'Framework :: Zope',
+        'Framework :: Pyramid',
         'Intended Audience :: Developers',
         'Natural Language :: English',
         'Operating System :: OS Independent',
@@ -35,15 +42,20 @@ setup(
         'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: Implementation :: CPython',
     ],
+    url="https://github.com/NextThought/nti.app.solr",
     zip_safe=True,
     packages=find_packages('src'),
     package_dir={'': 'src'},
     include_package_data=True,
+    tests_require=TESTS_REQUIRE,
     namespace_packages=['nti', 'nti.app'],
     install_requires=[
         'setuptools',
         'nti.async',
         'nti.solr',
     ],
+    extras_require={
+        'test': TESTS_REQUIRE,
+    },
     entry_points=entry_points,
 )
