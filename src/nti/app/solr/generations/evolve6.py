@@ -16,7 +16,7 @@ from zope.component.hooks import site as current_site
 
 from zope.event import notify
 
-from nti.contenttypes.presentation import INTIVideo
+from zope.intid.interfaces import IIntIds
 
 from nti.dataserver.interfaces import IDataserver
 from nti.dataserver.interfaces import IOIDResolver
@@ -26,9 +26,16 @@ from nti.site.hostpolicy import get_all_host_sites
 from nti.solr.interfaces import ICoreCatalog
 from nti.solr.interfaces import IndexObjectEvent
 
-generation = 3
+generation = 6
 
 logger = __import__('logging').getLogger(__name__)
+
+try:
+    from nti.contenttypes.courses.interfaces import ICourseCatalog
+except ImportError:
+    HAS_COURSES = False
+else:
+    HAS_COURSES = True
 
 
 @interface.implementer(IDataserver)
@@ -45,13 +52,28 @@ class MockDataserver(object):
         return None
 
 
-def _reindex_transcripts(seen):
-    for name, video in list(component.getUtilitiesFor(INTIVideo)):
-        if name in seen:
+def _sync_library():
+    try:
+        from nti.contentlibrary.interfaces import IContentPackageLibrary
+        library = component.queryUtility(IContentPackageLibrary)
+        if library is not None:
+            library.syncContentPackages()
+    except ImportError:
+        pass
+
+
+def _process_site(seen, intids):
+    from nti.contenttypes.courses.interfaces import ICourseInstance
+    catalog = component.queryUtility(ICourseCatalog)
+    if catalog is None or catalog.isEmpty():
+        return
+    for entry in catalog.iterCatalogEntries():
+        course = ICourseInstance(entry)
+        doc_id = intids.queryId(course)
+        if doc_id is None or doc_id in seen:
             continue
-        seen.add(name)
-        for transcript in video.transcripts or ():
-            notify(IndexObjectEvent(transcript))
+        seen.add(doc_id)
+        notify(IndexObjectEvent(course))
 
 
 def do_evolve(context, generation=generation):
@@ -70,14 +92,18 @@ def do_evolve(context, generation=generation):
                "Hooks not installed?"
 
         seen = set()
-        # clear all transcripts
-        catalog = component.getUtility(ICoreCatalog, name="transcripts")
-        catalog.clear(commit=False)
-        # re/index
-        _reindex_transcripts(seen)
-        for site in get_all_host_sites():
-            with current_site(site):
-                _reindex_transcripts(seen)
+        lsm = ds_folder.getSiteManager()
+        intids = lsm.getUtility(IIntIds)
+        # sync library
+        if HAS_COURSES:
+            _sync_library()
+        # clear all courses
+        catalog = component.queryUtility(ICoreCatalog, name="courses")
+        if catalog is not None and HAS_COURSES:
+            catalog.clear(commit=False)
+            for site in get_all_host_sites():
+                with current_site(site):
+                    _process_site(seen, intids)
 
     component.getGlobalSiteManager().unregisterUtility(mock_ds, IDataserver)
     logger.info('SOLR Evolution %s done', generation)
@@ -85,6 +111,6 @@ def do_evolve(context, generation=generation):
 
 def evolve(context):
     """
-    Evolve to generation 3 by reindexing the transcripts
+    Evolve to generation 6 by reindexing the course objects
     """
     do_evolve(context)

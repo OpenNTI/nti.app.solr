@@ -4,10 +4,9 @@
 .. $Id$
 """
 
-from __future__ import print_function, absolute_import, division
-__docformat__ = "restructuredtext en"
-
-logger = __import__('logging').getLogger(__name__)
+from __future__ import division
+from __future__ import print_function
+from __future__ import absolute_import
 
 from zope import component
 
@@ -29,6 +28,8 @@ from nti.contenttypes.courses.legacy_catalog import ILegacyCourseCatalogEntry
 from nti.contenttypes.courses.utils import get_course_subinstances
 
 from nti.dataserver import authorization as nauth
+
+logger = __import__('logging').getLogger(__name__)
 
 
 @view_config(context=ICourseInstance)

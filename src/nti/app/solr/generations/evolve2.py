@@ -4,12 +4,9 @@
 .. $Id$
 """
 
-from __future__ import print_function, absolute_import, division
-__docformat__ = "restructuredtext en"
-
-logger = __import__('logging').getLogger(__name__)
-
-generation = 2
+from __future__ import division
+from __future__ import print_function
+from __future__ import absolute_import
 
 from zope import component
 from zope import interface
@@ -28,6 +25,10 @@ from nti.dataserver.interfaces import IOIDResolver
 from nti.site.hostpolicy import get_all_host_sites
 
 from nti.solr.interfaces import IndexObjectEvent
+
+generation = 2
+
+logger = __import__('logging').getLogger(__name__)
 
 
 @interface.implementer(IDataserver)
@@ -90,8 +91,8 @@ def do_evolve(context, generation=generation):
     component.provideUtility(mock_ds, IDataserver)
 
     with current_site(ds_folder):
-        assert  component.getSiteManager() == ds_folder.getSiteManager(), \
-                "Hooks not installed?"
+        assert component.getSiteManager() == ds_folder.getSiteManager(), \
+               "Hooks not installed?"
 
         # global site
         seen = set()

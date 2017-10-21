@@ -4,10 +4,9 @@
 .. $Id$
 """
 
-from __future__ import print_function, absolute_import, division
-__docformat__ = "restructuredtext en"
-
-logger = __import__('logging').getLogger(__name__)
+from __future__ import division
+from __future__ import print_function
+from __future__ import absolute_import
 
 import six
 
@@ -50,6 +49,8 @@ from nti.solr.interfaces import IndexObjectEvent
 from nti.solr.interfaces import UnindexObjectEvent
 
 from nti.solr.utils import object_finder
+
+logger = __import__('logging').getLogger(__name__)
 
 
 def solr_notify(context):

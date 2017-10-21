@@ -1,7 +1,6 @@
 [run]
 source = nti.app.solr
 
-
 [report]
 exclude_lines =
     pragma: no cover

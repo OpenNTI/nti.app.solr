@@ -4,10 +4,9 @@
 .. $Id$
 """
 
-from __future__ import print_function, absolute_import, division
-__docformat__ = "restructuredtext en"
-
-logger = __import__('logging').getLogger(__name__)
+from __future__ import division
+from __future__ import print_function
+from __future__ import absolute_import
 
 import os
 import sys
@@ -51,6 +50,8 @@ LOG_ITER_COUNT = 1000
 
 #: How often we commit work
 DEFAULT_COMMIT_BATCH_SIZE = 2000
+
+logger = __import__('logging').getLogger(__name__)
 
 
 class _SolrInitializer(object):

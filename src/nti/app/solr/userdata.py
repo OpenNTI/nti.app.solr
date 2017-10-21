@@ -4,10 +4,9 @@
 .. $Id$
 """
 
-from __future__ import print_function, absolute_import, division
-__docformat__ = "restructuredtext en"
-
-logger = __import__('logging').getLogger(__name__)
+from __future__ import division
+from __future__ import print_function
+from __future__ import absolute_import
 
 from zope import component
 
@@ -31,6 +30,8 @@ from nti.solr.common import add_to_queue
 from nti.solr.interfaces import ICoreCatalog
 from nti.solr.interfaces import IIndexObjectEvent
 
+logger = __import__('logging').getLogger(__name__)
+
 
 def all_user_generated_data(users=(), sharedWith=False):
     seen = set()
@@ -38,8 +39,9 @@ def all_user_generated_data(users=(), sharedWith=False):
     intids = component.getUtility(IIntIds)
 
     # get user data objects
-    usernames = {getattr(user, 'username', user).lower()
-                 for user in users or ()}
+    usernames = {
+        getattr(user, 'username', user).lower() for user in users or ()
+    }
     if usernames:
         user_ids = catalog[IX_CREATOR].apply({'any_of': usernames})
     else:
