@@ -18,8 +18,6 @@ from nti.async.utils.processor import Processor
 
 from nti.dataserver.utils.base_script import create_context
 
-from nti.solr import QUEUE_NAMES
-
 logger = __import__('logging').getLogger(__name__)
 
 
@@ -49,9 +47,10 @@ class Constructor(Processor):
         return context
 
     def conf_packages(self):
-        return (self.conf_package, 'nti.app.solr', 'nti.async')
+        return (self.conf_package, 'nti.app.solr',)
 
     def process_args(self, args):
+        from nti.solr import QUEUE_NAMES  # late bind
         setattr(args, 'redis', True)
         setattr(args, 'library', True)  # load library
         setattr(args, 'max_sleep_time', 30)
@@ -61,6 +60,7 @@ class Constructor(Processor):
 
 def main():
     return Constructor()()
+
 
 if __name__ == '__main__':
     main()
