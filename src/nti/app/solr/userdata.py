@@ -22,13 +22,13 @@ from nti.dataserver.metadata.index import TP_USER_GENERATED_DATA
 
 from nti.dataserver.metadata.index import get_metadata_catalog
 
-from nti.solr import USERDATA_QUEUE
-
 from nti.solr.common import finder
 from nti.solr.common import add_to_queue
 
 from nti.solr.interfaces import ICoreCatalog
 from nti.solr.interfaces import IIndexObjectEvent
+
+from nti.solr.userdata import USERDATA_QUEUE
 
 logger = __import__('logging').getLogger(__name__)
 

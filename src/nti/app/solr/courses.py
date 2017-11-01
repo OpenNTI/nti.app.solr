@@ -23,12 +23,12 @@ from nti.contenttypes.presentation.interfaces import IConcreteAsset
 from nti.contenttypes.presentation.interfaces import IUserCreatedAsset
 from nti.contenttypes.presentation.interfaces import IPresentationAssetContainer
 
-from nti.solr import COURSES_QUEUE
-
 from nti.solr.common import finder
 from nti.solr.common import add_to_queue
 from nti.solr.common import get_job_site
 from nti.solr.common import process_asset
+
+from nti.solr.courses import COURSES_QUEUE
 
 from nti.solr.interfaces import ICoreCatalog
 from nti.solr.interfaces import IIndexObjectEvent

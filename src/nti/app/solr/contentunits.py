@@ -17,7 +17,7 @@ from nti.assessment.interfaces import IQAssessmentItemContainer
 from nti.contentlibrary.interfaces import IContentPackage
 from nti.contentlibrary.interfaces import IEditableContentPackage
 
-from nti.solr import EVALUATIONS_QUEUE
+from nti.solr.assessment import EVALUATIONS_QUEUE
 
 from nti.solr.common import finder
 from nti.solr.common import get_job_site
