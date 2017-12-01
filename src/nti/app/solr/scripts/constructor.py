@@ -8,6 +8,8 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import absolute_import
 
+# pylint: disable=W0221
+
 from zope import interface
 
 from zope.location.interfaces import ILocation
@@ -31,9 +33,6 @@ PP_SOLR = PluginPoint('nti.solr')
 
 
 class Constructor(Processor):
-
-    def set_log_formatter(self, args):
-        super(Constructor, self).set_log_formatter(args)
 
     def extend_context(self, context):
         includePluginsDirective(context, PP_SOLR)
