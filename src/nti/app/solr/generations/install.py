@@ -13,7 +13,7 @@ from zope.generations.generations import SchemaManager as BaseSchemaManager
 
 from zope.generations.interfaces import IInstallableSchemaManager
 
-generation = 6
+generation = 7
 
 logger = __import__('logging').getLogger(__name__)
 
@@ -31,5 +31,5 @@ class SOLRSchemaManager(BaseSchemaManager):
             package_name='nti.app.solr.generations')
 
 
-def evolve(context):
+def evolve(unused_context):
     pass
