@@ -8,6 +8,8 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import absolute_import
 
+# pylint: disable=unused-argument
+
 from zope import component
 
 from zope.component.hooks import site as current_site
