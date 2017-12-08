@@ -96,8 +96,9 @@ def do_evolve(context, generation=generation):
             # process jobs
             hash_key = name + '/hash'
             data = redis_client.lrange(name, 0, -1)
-            for job in (_unpickle(x) for x in data or ()):
+            for job in data or ():
                 try:
+                    job = _unpickle(job)
                     job()
                 except Exception:
                     logger.error("Cannot execute SOLR job %s", job)
