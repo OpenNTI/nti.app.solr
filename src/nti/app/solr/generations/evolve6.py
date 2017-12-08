@@ -60,7 +60,7 @@ def _sync_library():
         library = component.queryUtility(IContentPackageLibrary)
         if library is not None:
             library.syncContentPackages()
-    except ImportError:
+    except ImportError:  # pragma: no cover
         pass
 
 
@@ -78,7 +78,7 @@ def _process_site(seen, intids):
         notify(IndexObjectEvent(course))
 
 
-def do_evolve(context, generation=generation):
+def do_evolve(context, generation=generation):  # pylint: disable=redefined-outer-name
     logger.info("SOLR evolution %s started", generation)
 
     setHooks()

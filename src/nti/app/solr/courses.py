@@ -8,6 +8,8 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import absolute_import
 
+# pylint: disable=unused-argument
+
 from zope import component
 
 from zope.component.hooks import site as current_site
@@ -111,7 +113,7 @@ def process_course_evaluations(obj, index=True):
                 catalog = ICoreCatalog(item)
                 operation = catalog.add if index else catalog.remove
                 operation(item, commit=False)  # wait for server to commit
-    except ImportError:
+    except ImportError:  # pragma: no cover
         pass
 
 

@@ -54,7 +54,7 @@ def _reindex_transcripts(seen):
             notify(IndexObjectEvent(transcript))
 
 
-def do_evolve(context, generation=generation):
+def do_evolve(context, generation=generation):  # pylint: disable=redefined-outer-name
     logger.info("SOLR evolution %s started", generation)
 
     setHooks()

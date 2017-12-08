@@ -44,6 +44,7 @@ def username_search(search_term):
     min_inclusive, max_exclusive = _make_min_max_btree_range(search_term)
     dataserver = component.getUtility(IDataserver)
     _users = IShardLayout(dataserver).users_folder
+    # pylint: disable=no-member
     usernames = _users.iterkeys(min_inclusive, max_exclusive, excludemax=True)
     return usernames
 
@@ -51,5 +52,5 @@ def username_search(search_term):
 def all_usernames():
     dataserver = component.getUtility(IDataserver)
     users_folder = IShardLayout(dataserver).users_folder
-    usernames = users_folder.keys()
+    usernames = users_folder.keys()  # pylint: disable=no-member
     return usernames

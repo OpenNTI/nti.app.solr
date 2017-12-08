@@ -51,7 +51,7 @@ def _sync_library():
         library = component.queryUtility(IContentPackageLibrary)
         if library is not None:
             library.syncContentPackages()
-    except ImportError:
+    except ImportError:  # pragma: no cover
         pass
 
 
@@ -59,7 +59,7 @@ def _renderable_mimeTypes():
     try:
         from nti.contentlibrary import RENDERABLE_CONTENT_MIME_TYPES
         return RENDERABLE_CONTENT_MIME_TYPES
-    except ImportError:
+    except ImportError:  # pragma: no cover
         return ()
 
 
@@ -78,11 +78,11 @@ def _reindex_units(seen, intids):
                 continue
             seen.add(doc_id)
             notify(IndexObjectEvent(package))
-    except ImportError:
+    except ImportError:  # pragma: no cover
         pass
 
 
-def do_evolve(context, generation=generation):
+def do_evolve(context, generation=generation):  # pylint: disable=redefined-outer-name
     logger.info("SOLR evolution %s started", generation)
 
     setHooks()

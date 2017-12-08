@@ -8,7 +8,7 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import absolute_import
 
-# pylint: disable=W0212,W0621,W0703
+# pylint: disable=protected-access
 
 import zlib
 import pickle
@@ -53,7 +53,7 @@ def _load_library():
         library = component.queryUtility(IContentPackageLibrary)
         if library is not None:
             library.syncContentPackages()
-    except ImportError:
+    except ImportError:  # pragma: no cover
         pass
 
 
@@ -72,7 +72,7 @@ class MockDataserver(object):
         return None
 
 
-def do_evolve(context, generation=generation):
+def do_evolve(context, generation=generation):  # pylint: disable=redefined-outer-name
     setHooks()
     conn = context.connection
     ds_folder = conn.root()['nti.dataserver']
@@ -100,7 +100,7 @@ def do_evolve(context, generation=generation):
                 try:
                     job = _unpickle(job)
                     job()
-                except Exception:
+                except Exception:  # pylint: disable=broad-except
                     logger.error("Cannot execute SOLR job %s", job)
             _reset(redis_client, name, hash_key)
 

@@ -37,7 +37,7 @@ def _package_authored_evaluations(obj):
         from nti.app.assessment.interfaces import IQEvaluations
         container = IQEvaluations(obj, None)
         return container.values() if container else ()
-    except ImportError:
+    except ImportError:  # pragma: no cover
         return ()
 
 

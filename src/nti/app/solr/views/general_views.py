@@ -160,7 +160,7 @@ class IndexMembershipObjectView(SOLRIndexObjectView):
 
     def __call__(self):
         self._notify(self.context)
-        for user in self.context:
+        for user in self.context:  # pylint: disable=not-an-iterable
             self._notify(user)
         return hexc.HTTPNoContent()
 
@@ -176,7 +176,7 @@ class UnindexMembershipObjectView(UnindexSOLRObjectView):
 
     def __call__(self):
         self._notify(self.context)
-        for user in self.context:
+        for user in self.context:  # pylint: disable=not-an-iterable
             self._notify(user)
         return hexc.HTTPNoContent()
 

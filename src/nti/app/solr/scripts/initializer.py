@@ -85,7 +85,7 @@ class _SolrInitializer(object):
         if obj_ntiid:
             self.seen_ntiids.add(obj_ntiid)
         if not obj_ntiid and obj_id is None:
-            logger.warn('Object without ntiid or intid (%s)', obj)
+            logger.warning('Object without ntiid or intid (%s)', obj)
             return False
         return True
 
@@ -95,8 +95,8 @@ class _SolrInitializer(object):
         if community_username:
             site_community = Community.get_community(community_username)
             if site_community is not None:
-                logger.warn("[%s] Using community %s",
-                            self.site_name, community_username)
+                logger.warning("[%s] Using community %s",
+                               self.site_name, community_username)
                 try:
                     return site_community.iter_members()
                 except AttributeError:
@@ -107,7 +107,7 @@ class _SolrInitializer(object):
     def all_users_iter(self):
         dataserver = component.getUtility(IDataserver)
         users = IShardLayout(dataserver).users_folder
-        for user in users.values():
+        for user in users.values():  # pylint: disable=no-member
             if IUser.providedBy(user):
                 yield user
 
