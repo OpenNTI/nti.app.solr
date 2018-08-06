@@ -8,8 +8,6 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import absolute_import
 
-# pylint: disable=unused-argument
-
 from zope import component
 
 from zope.component.hooks import site as current_site
@@ -36,6 +34,7 @@ def _package_authored_evaluations(obj):
     try:
         from nti.app.assessment.interfaces import IQEvaluations
         container = IQEvaluations(obj, None)
+        # pylint: disable=too-many-function-args
         return container.values() if container else ()
     except ImportError:  # pragma: no cover
         return ()
@@ -46,6 +45,7 @@ def _package_native_evaluations(obj):
     def recur(unit):
         container = IQAssessmentItemContainer(unit, None)
         if container:
+            # pylint: disable=too-many-function-args
             collector.extend(container.values())
         for child in unit.children or ():
             recur(child)
@@ -63,6 +63,8 @@ def process_content_package_evaluations(obj, index=True):
         operation = catalog.add if index else catalog.remove
         operation(item, commit=False)  # wait for server to commit
 
+
+# pylint: disable=keyword-arg-before-vararg, unused-argument
 
 def index_content_package_evaluations(source, site=None, *unused_args, **unused_kwargs):
     job_site = get_job_site(site)
@@ -84,12 +86,12 @@ def unindex_content_package_evaluations(source, site=None, *unused_args, **unuse
 
 
 @component.adapter(IContentPackage, IIndexObjectEvent)
-def _index_contentpackage(obj, _):
+def _index_contentpackage(obj, unused_event=None):
     add_to_queue(EVALUATIONS_QUEUE,
                  index_content_package_evaluations, obj, jid='evaluations_added')
 
 
 @component.adapter(IContentPackage, IUnindexObjectEvent)
-def _unindex_contentpackage(obj, _):
+def _unindex_contentpackage(obj, unused_event=None):
     add_to_queue(EVALUATIONS_QUEUE, unindex_content_package_evaluations, obj,
                  jid='evaluations_removed')

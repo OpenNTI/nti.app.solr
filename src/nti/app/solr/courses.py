@@ -8,8 +8,6 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import absolute_import
 
-# pylint: disable=unused-argument
-
 from zope import component
 
 from zope.component.hooks import site as current_site
@@ -41,12 +39,15 @@ logger = __import__('logging').getLogger(__name__)
 def process_course_assets(obj, index=True):
     container = IPresentationAssetContainer(obj, None)
     if container:
+        # pylint: disable=too-many-function-args
         for a in list(container.values()):
             a = IConcreteAsset(a, a)
             if IUserCreatedAsset.providedBy(a):
                 # wait for server to commit
                 process_asset(a, index=index, commit=False)
 
+
+# pylint: disable=keyword-arg-before-vararg, unused-argument
 
 def index_course_assets(source, site=None, *unused_args, **unused_kwargs):
     job_site = get_job_site(site)
@@ -73,6 +74,7 @@ def process_course_assignment_feedback(obj, index=True):
         from nti.app.assessment.interfaces import IUsersCourseAssignmentHistories
         container = IUsersCourseAssignmentHistories(obj, None)
         if container is not None:
+            # pylint: disable=too-many-function-args
             for history in list(container.values()):
                 for item in list(history.values()):
                     for feedback in item.Feedback.Items:
@@ -109,6 +111,7 @@ def process_course_evaluations(obj, index=True):
         from nti.app.assessment.interfaces import IQEvaluations
         container = IQEvaluations(obj, None)
         if container is not None:
+            # pylint: disable=too-many-function-args
             for item in list(container.values()):
                 catalog = ICoreCatalog(item)
                 operation = catalog.add if index else catalog.remove
@@ -174,7 +177,7 @@ def unindex_course_discussions(source, site=None, *unused_args, **unused_kwargs)
 
 
 @component.adapter(ICourseInstance, IIndexObjectEvent)
-def _index_course(obj, _):
+def _index_course(obj, unused_event=None):
     add_to_queue(COURSES_QUEUE,
                  index_course_assets,
                  obj, 
@@ -197,7 +200,7 @@ def _index_course(obj, _):
 
 
 @component.adapter(ICourseInstance, ICourseInstanceImportedEvent)
-def _course_imported(obj, _):
+def _course_imported(obj, unused_event=None):
     if not ICourseSubInstance.providedBy(obj):
         for course in get_course_hierarchy(obj):
             _index_course(course, None)
