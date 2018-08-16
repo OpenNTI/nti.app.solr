@@ -16,8 +16,6 @@ import argparse
 import transaction
 from functools import partial
 
-import zope.exceptions
-
 from zope import component
 
 from zope.component.hooks import getSite
@@ -25,16 +23,16 @@ from zope.component.hooks import site as current_site
 
 from zope.event import notify
 
+from zope.exceptions.log import Formatter as ExceptionFormatter
+
 from zope.intid.interfaces import IIntIds
 
-from nti.appserver.policies.interfaces import ISitePolicyUserEventListener
+from nti.app.users.utils import get_community_or_site_members
 
 from nti.dataserver.interfaces import IUser
 from nti.dataserver.interfaces import IDataserver
 from nti.dataserver.interfaces import IShardLayout
 from nti.dataserver.interfaces import IDataserverTransactionRunner
-
-from nti.dataserver.users.communities import Community
 
 from nti.dataserver.utils import run_with_dataserver
 
@@ -76,7 +74,7 @@ class _SolrInitializer(object):
         obj_id = intids.queryId(obj)
         obj_ntiid = getattr(obj, 'ntiid', None)
 
-        if (   obj_id is not None and obj_id in self.seen_intids) \
+        if     (obj_id is not None and obj_id in self.seen_intids) \
             or (obj_ntiid is not None and obj_ntiid in self.seen_ntiids):
             return False
 
@@ -90,19 +88,8 @@ class _SolrInitializer(object):
         return True
 
     def user_iter(self):
-        site_policy = component.queryUtility(ISitePolicyUserEventListener)
-        community_username = getattr(site_policy, 'COM_USERNAME', '')
-        if community_username:
-            site_community = Community.get_community(community_username)
-            if site_community is not None:
-                logger.warning("[%s] Using community %s",
-                               self.site_name, community_username)
-                try:
-                    return site_community.iter_members()
-                except AttributeError:
-                    logger.warn("[%s] Not an iterable community (%s)",
-                                self.site_name, community_username)
-        logger.warn("[%s] No community found for site", self.site_name)
+        for user in get_community_or_site_members(True):
+            yield user
 
     def all_users_iter(self):
         dataserver = component.getUtility(IDataserver)
@@ -182,7 +169,7 @@ class _SolrInitializer(object):
                     return count
             return count
 
-    def __call__(self, all_users=False, site_users=True, courses=True, packages=True):
+    def run(self, all_users=False, site_users=True, courses=True, packages=True):
         total = 0
         now = time.time()
         logger.info('[%s] Initializing solr intializer (batch_size=%s)',
@@ -210,6 +197,7 @@ class _SolrInitializer(object):
         elapsed = time.time() - now
         logger.info("[%s] Total objects processed (size=%s) (time=%s)",
                     self.site_name, total, elapsed)
+    __call__ = run  # alias
 
 
 class Processor(object):
@@ -221,7 +209,7 @@ class Processor(object):
                                 help="Commit after each batch")
 
         site_group = arg_parser.add_mutually_exclusive_group()
-        site_group.add_argument('-s', '--site', help="request site", 
+        site_group.add_argument('-s', '--site', help="request site",
                                 dest='site')
         site_group.add_argument('--all-sites', dest='all_sites',
                                 help="Index all sites", action='store_true')
@@ -244,8 +232,7 @@ class Processor(object):
 
     def set_log_formatter(self, unused_args):
         ei = '%(asctime)s %(levelname)-5.5s [%(name)s][%(thread)d][%(threadName)s] %(message)s'
-        formatter = zope.exceptions.log.Formatter(ei)
-        logging.root.handlers[0].setFormatter(formatter)
+        logging.root.handlers[0].setFormatter(ExceptionFormatter(ei))
 
     def _load_library(self):
         try:
@@ -283,10 +270,10 @@ class Processor(object):
                                                     site.__name__,
                                                     seen_intids,
                                                     seen_ntiids)
-                solr_initializer(all_users=args.all_users,
-                                 site_users=args.site_users,
-                                 courses=args.courses,
-                                 packages=args.packages)
+                solr_initializer.run(all_users=args.all_users,
+                                     site_users=args.site_users,
+                                     courses=args.courses,
+                                     packages=args.packages)
         sys.exit()
 
     def __call__(self, *unused_args, **unused_kwargs):
