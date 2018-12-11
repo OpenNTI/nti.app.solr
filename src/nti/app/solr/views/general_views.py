@@ -30,6 +30,8 @@ from nti.app.solr.views import username_search
 
 from nti.app.solr.views import SOLRPathAdapter
 
+from nti.contenttypes.calendar.interfaces import ICalendarEvent
+
 from nti.contenttypes.presentation.interfaces import INTIMedia
 from nti.contenttypes.presentation.interfaces import INTITranscript
 from nti.contenttypes.presentation.interfaces import INTIDocketAsset
@@ -117,6 +119,7 @@ class UnindexSOLRObjectView(AbstractAuthenticatedView):
 
 @view_config(context=IUser)
 @view_config(context=INTIMedia)
+@view_config(context=ICalendarEvent)
 @view_config(context=INTITranscript)
 @view_config(context=INTIDocketAsset)
 @view_config(context=IUserGeneratedData)
@@ -134,6 +137,7 @@ class IndexObjectView(SOLRIndexObjectView):
 
 @view_config(context=IUser)
 @view_config(context=INTIMedia)
+@view_config(context=ICalendarEvent)
 @view_config(context=INTITranscript)
 @view_config(context=INTIDocketAsset)
 @view_config(context=IUserGeneratedData)
