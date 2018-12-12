@@ -52,6 +52,7 @@ setup(
     install_requires=[
         'setuptools',
         'nti.app.asynchronous',
+        'nti.contenttypes.calendar',
         'nti.contenttypes.presentation',
         'nti.externalization',
         'nti.site',
