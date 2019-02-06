@@ -45,6 +45,8 @@ from nti.dataserver.interfaces import IUserGeneratedData
 
 from nti.dataserver.users.users import User
 
+from nti.dataserver.users.utils import get_users_by_sites
+
 from nti.externalization.proxy import removeAllProxies
 
 from nti.solr.interfaces import IndexObjectEvent
@@ -206,10 +208,14 @@ class IndexUsersViews(SOLRIndexObjectView,
         values = self.readInput()
         term = values.get('term') or values.get('search')
         usernames = values.get('usernames') or values.get('username')
+        sites = values.get('sites') or values.get('site')
         if term:
             usernames = username_search(term)
         elif isinstance(usernames, six.string_types):
             usernames = set(usernames.split(","))
+        elif isinstance(sites, six.string_types):
+            sites = sites.split(",")
+            usernames = get_users_by_sites(sites)
         else:
             usernames = all_usernames()
         for name in usernames or ():
