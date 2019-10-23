@@ -40,8 +40,7 @@ class Constructor(Processor):
     def create_context(self, env_dir, unused_args=None):
         context = create_context(env_dir, with_library=True,
                                  plugins=True,
-                                 slugs=True,
-                                 slugs_files=("*solr.zcml", "*features.zcml"))
+                                 slugs=True)
         self.extend_context(context)
         return context
 
