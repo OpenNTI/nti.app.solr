@@ -15,6 +15,7 @@ TESTS_REQUIRE = [
     'nti.app.testing',
     'nti.testing',
     'zope.testrunner',
+    'nti.app.sites.alpha' #Tests require alpha.nextthought.com site
 ]
 
 
